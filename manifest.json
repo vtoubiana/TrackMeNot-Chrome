@@ -1,0 +1,24 @@
+{
+"manifest_version": 2,
+  "name": "TrackMeNot",
+  "version": "0.8.3",
+  "description": "TMN portage on Chrome",
+  "browser_action": {
+    "default_icon": "tmn.png",
+    "popup": "menu.html"
+  },
+  "background": "tmn_page.html",
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*"],
+      "js": ["tmn_search.js", "rep_processor.js"],
+      "run_at": "document_start",
+      "all_frames" : true  
+    }
+  ],  
+  "permissions": [
+  "tabs","http://*/*"
+]     
+}
+
