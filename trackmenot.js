@@ -30,7 +30,7 @@ var _ = require("l10n").get;
 var sp = require("sdk/simple-prefs");*/
 
 
-
+var _ = chrome.i18n.getMessage;
 
 
 if(!TRACKMENOT) var TRACKMENOT = {};
@@ -49,7 +49,7 @@ TRACKMENOT.TMNSearch = function() {
     var engine = 'google';
     var TMNQueries = {};
     var branch =  "extensions.trackmenot."
-    var feedList = _("tmn.rss.default-feeds");// 'http://www.techmeme.com/index.xml|http://rss.slashdot.org/Slashdot/slashdot|http://feeds.nytimes.com/nyt/rss/HomePage';
+    var feedList = 'http://www.techmeme.com/index.xml|http://rss.slashdot.org/Slashdot/slashdot|http://feeds.nytimes.com/nyt/rss/HomePage';
     var tmnLogs = [];
     var disableLogs = false;
     var saveLogs =  true;
@@ -74,7 +74,9 @@ TRACKMENOT.TMNSearch = function() {
     var currentTMNURL = '';
     var tmn_option_tab = null;
     var worker_tab, worker_opt;
-    var search_script = [data.url("jquery.js"),data.url("tmn_search.js")];
+
+    
+    //var search_script = [data.url("jquery.js"),data.url("tmn_search.js")];
     
     var skipex =new Array(   
     /calendar/i,/advanced/i,/click /i,/terms/i,/Groups/i,
@@ -129,7 +131,7 @@ TRACKMENOT.TMNSearch = function() {
 		
 	var getButton_google =" var getButton = function(  ) {var button = getElementsByAttrValue(document,'button', 'name', 'btnG' );		if ( !button ) button = getElementsByAttrValue(document,'button', 'name', 'btnK' );return button;}"        
 	var getButton_yahoo= " var getButton = function(  ) {return getElementsByAttrValue(document,'input', 'class', 'sbb' ); } "         
-	var  getButton_bing= " var getButton = function(  ) {return document.getElementById('sb_form_go');}  "     
+	var getButton_bing= " var getButton = function(  ) {return document.getElementById('sb_form_go');}  "     
 	var getButton_aol = " var getButton = function (  ) {return document.getElementById('csbbtn1');   }"
 	var getButton_baidu = " var getButton = function (  ){ return getElementsByAttrValue(document,'input', 'value', '????' ); }"  
 
@@ -189,18 +191,13 @@ var engines = [
 	}
 		 	
     
-    var tmn_panel = panels.Panel({
-        width:115,
-        height:125,
-        contentURL: data.url("tmn_menu.html"),
-        contentScriptFile: [data.url("jquery.js"),data.url("menu-script.js")],
-        onShow: sendOptionParameters
-    });
+    
+
      
 
 	
 	function updateEngineList() {
-		ss.storage.engines = JSON.stringify(engines) ;
+		chrome.storage.set({engines : JSON.stringify(engines)}) ;
 		sendMessageToOptionScript("TMNSendEngines",engines);
 		sendOptionToTab();
 	}
@@ -208,7 +205,7 @@ var engines = [
 
 	
 	function sendMessageToOptionScript(title, message) {
-		 worker_opt.port.emit(title,message)
+		chrome.runtime.sendMessage({"options":title,"param":message})
 	}
 	
 	function handleMessageFromOptionScript(title, handler) {
@@ -217,7 +214,7 @@ var engines = [
 	
 	
 	function sendMessageToPanelScript(title, message) {
-		 tmn_panel.port.emit(title,message)
+		 hrome.runtime.sendMessage(title,message)
 	}
 	
 	function handleMessageFromPanelScript(title, handler) {
@@ -232,9 +229,9 @@ var engines = [
 	
     function sendQueriesToOption() {
         var allqueries = "";
-        for each( var arr in TMNQueries) {
+        for ( var arr of TMNQueries) {
             if (arr && arr.length) {
-                for each (var elt in arr)
+                for  (var elt of arr)
                 if ( elt&&  elt.words && elt.words.length) allqueries+= elt.words.join(',');
                 else allqueries+= elt+",";   
             }
@@ -243,14 +240,7 @@ var engines = [
     }
      
      	       
-    var widget = widgets.Widget({
-        id: "tmn_widget",
-        label: "TMN",
-        width: 150,
-        contentURL: data.url("tmn_widget.html"),
-        contentScriptFile: [data.url("jquery.js"),data.url("widget-script.js")],
-        panel: tmn_panel
-    });
+    
     
     function sendOptionParameters() {
         debug("Sending perameters")
@@ -266,24 +256,19 @@ var engines = [
             onReady:  runScript
         });
     }
-    
-
-    sp.on("tmnOptionPref", function() {
-      openOptionWindow()
-    });
         
     function runScript(tab) {
         worker_opt = tab.attach({
             contentScriptFile: [data.url("jquery.js"),data.url("option-script.js")]
         });
         sendOptionToTab();
-        handleMessageFromOptionScript("TMNSaveOptions",saveOptionFromTab)
+        /*handleMessageFromOptionScript("TMNSaveOptions",saveOptionFromTab)
         handleMessageFromOptionScript("TMNOptionsShowLog", sendLogToOption)
         handleMessageFromOptionScript("TMNOptionsShowQueries", sendQueriesToOption)
         handleMessageFromOptionScript("TMNOptionsClearLog", clearLog)
         handleMessageFromOptionScript("TMNValideFeeds", validateFeeds)
 		handleMessageFromOptionScript("TMNAddEngine",addEngine)
-    	handleMessageFromOptionScript("TMNDelEngine",delEngine)
+    	handleMessageFromOptionScript("TMNDelEngine",delEngine)*/
     }
     
 
@@ -340,13 +325,20 @@ var engines = [
         }          
     } 
 	
-		
+
+
+
     function iniTab(tab) {
         tmn_tab_id = tab.id;
         tmn_win_id = tab.windowId;
-        localStorage["tmn_tab_id"] = tmn_tab_id;
+        chrome.storage.local.set({"tmn_tab_id": tmn_tab_id});
     }
-  
+    
+     function getTMNTab() {
+        debug("Trying to access to the tab: " + tmn_tab_id);
+        return tmn_tab_id;
+    }
+		
     function deleteTab() {
         if (!useTabe ) return;
         chrome.tabs.remove(tmn_tab_id);
@@ -355,7 +347,7 @@ var engines = [
 	
     function createTab() {
         if (!useTab || tmn_tab_id != -1) return;
-        if(debug) _cout('Creating tab for TrackMeNot')
+        if(debug) cout('Creating tab for TrackMeNot')
         try {
             chrome.tabs.create({
                 'selected': false, 
@@ -485,43 +477,37 @@ var engines = [
 
 	
     function monitorBurst() {
-        pageMod.PageMod({
-            //include: /.[a-z]+\.(google|yahoo|bing|baidu)\.(co\\.|com\\.)?[a-z]{2,3}.*/,
-            include: ["*"],
-            contentScriptFile: data.url("stoping-script.js"),
-            contentScriptWhen : stop_when,
-            onAttach: function onAttach(worker) {
-                if (!worker.tab) return
-                var url = worker.tab.url;  
-                var result = checkForSearchUrl(url);
-                if (!result) {
-                    if ( tmn_tab && worker.tab.index == tmn_tab.index) {
+        chrome.webNavigation.onCommitted.addListener(function(e) {
+			var url = e.url;  
+			var tab_id = e.tabId;
+			var result = checkForSearchUrl(url);
+			if (!result) {
+                    if ( tab_id == tmn_tab_id) {
                         debug("TMN tab tryign to visit: "+ url)
-                        worker.port.emit("TMNStopLoading");	
+                        //worker.port.emit("TMNStopLoading");	
                     }			
                     return;
                 }
 
-                //
-                // -- EXTRACT DATA FROM THE URL
-                var pre   = result[1];
-                var query = result[2];
-                var post  = result[3];
-                var eng   = result[4];
-                var asearch  = pre+'|'+post;
-                if (!tmn_tab || worker.tab.index != tmn_tab.index ) {
-                    debug("Worker find a match for url: "+ url + " on engine "+ eng +"!")
-                    if (burstEnabled)  enterBurst ( eng )
+			//
+			// -- EXTRACT DATA FROM THE URL
+			var pre   = result[1];
+			var query = result[2];
+			var post  = result[3];
+			var eng   = result[4];
+			var asearch  = pre+'|'+post;
+			if (tmn_tab_id == -1 || tab_id != tmn_tab_id ) {
+				debug("Worker find a match for url: "+ url + " on engine "+ eng +"!")
+				if (burstEnabled)  enterBurst ( eng )
 					var engine = getEngineById(eng)
-                    if ( engine && engine.urlmap != asearch ) {
+					if ( engine && engine.urlmap != asearch ) {
                         engine.urlmap = asearch;          
-                        ss.storage.engines = JSON.stringify(engines) ;
+                        chrome.storage.set({engines :JSON.stringify(engines)}) ;
                         var logEntry = createLog('URLmap', eng, null,null,null, asearch)
                         log(logEntry);
                         debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
                     }
                 } 
-            }
         }); 
         
     }
@@ -674,7 +660,7 @@ var engines = [
             return false;
     
         queryList.push(term);
-        //gtmn._cout("adding("+gtmn._queries.length+"): "+term);
+        //gtmn.cout("adding("+gtmn._queries.length+"): "+term);
     
         return true;
     }
@@ -750,11 +736,11 @@ var engines = [
             onComplete: function (response) { 
                 if (response.status ==200 ) {
                     var keywords = response.json.keywords;
-                    for each(var cat in keywords)   {
+                    for (var cat of keywords)   {
                         TMNQueries.dhs[i] = {};
                         TMNQueries.dhs[i].category_name = cat.category_name;
                         TMNQueries.dhs[i].words = [];
-                        for each (var word in cat.category_words)
+                        for  (var word of cat.category_words)
                         TMNQueries.dhs[i].words.push(word.name)
                         i++;
                     }
@@ -768,21 +754,41 @@ var engines = [
         req.get();
     }
   
+  
     function doRssFetch(feedUrl){		
-        if (!feedUrl)  return;
-        
-        var req = Request({
-            url: feedUrl,
-            onComplete: function (response) {  
-                if (response.status == 200) {
-                    cout(response.text);   
-                    var parser = Cc["@mozilla.org/xmlextras/domparser;1"].createInstance(Ci.nsIDOMParser);
-                    var doc = parser.parseFromString(response.text,'text/xml');
-                    addRssTitles(doc, feedUrl);
-                }  
+        var req;		
+        try {
+            req = new XMLHttpRequest();
+        } 
+        catch (e) {
+            try {
+                req = new ActiveXObject('Msxml2.XMLHTTP');
+            } 
+            catch (e) {
+                try {
+                    req = new ActiveXObject('Microsoft.XMLHTTP');
+                } 
+                catch (e) {
+                    console.log('XMLHttpRequest not supported');
+                    return;
+                }
             }
-        });
-        req.get();
+        }
+        try {
+            req.open('GET', feedUrl, true);
+            req.onreadystatechange = function(aEvt){
+                if (req.readyState == 4) {
+                    if (req.status == 200) 
+                        var adds = addRssTitles(req.responseXML, feedUrl);
+                }
+            };
+            req.send(null);
+        } catch (ex) {
+            cout("[WARN]  doRssFetch("+feedUrl+")\n"
+                +"  "+ex.message+" | Using defaults..."); 
+            return ; // no adds here...				
+        }
+
     }
 			
     function getSubQuery(queryWords) {
@@ -819,27 +825,36 @@ var engines = [
         return term;
     }
 	
-    function updateIcon (url)    {
-        var Uri = new URL(url);
-        var iconURL = "http://" + Uri.host +"/favicon.ico";
-        widget.port.emit("UpdateIcon", iconURL)
-    }	
-	
-	function updateOnErr() {
-        widget.label  = 'Error'
-        widget.tooltip =  'TMN Error'       
-        widget.port.emit("UpdateText", 'TMN Error')
+    
+    	
+    function updateOnErr() {
+        var details = {
+            'text':'Error'
+        };
+        var tooltip = {
+            'title': 'TMN Error'
+        };
+        chrome.browserAction.setBadgeBackgroundColor({
+            'color':[255,0,0,255]
+        })
+        chrome.browserAction.setBadgeText(details);
+        chrome.browserAction.setTitle(tooltip);  
     }
-	
+    	
     function updateOnSend ( queryToSend ) {
         tmn_query = queryToSend;
-        widget.label  = queryToSend
-        widget.tooltip =  engine+" '"+queryToSend+"'"  
-        if (!burstEnabled || burstCount == 0)    
-            widget.port.emit("UpdateText", " TMN: '"+queryToSend+"'") 
-        else 
-            widget.port.emit("UpdateText", " TMN (" + burstCount +"): '"+queryToSend+"'")   
-    }           
+        var details = {
+            'text':queryToSend
+        };
+        var tooltip = {
+            'title': engine+': '+queryToSend
+        };
+        chrome.browserAction.setBadgeBackgroundColor({
+            'color':[113,113,198,255]
+        })
+        chrome.browserAction.setBadgeText(details);
+        chrome.browserAction.setTitle(tooltip);  
+    }          
   	
     function createLog(type,engine,mode,query,id,asearch) {
         var logEntry = {  'type' : type, "engine" : engine };
@@ -894,9 +909,9 @@ var engines = [
         }
         if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase();
         if (queryToSend[0]==' ' ) queryToSend = queryToSend.substr(1); //remove the first space ;
-        updateIcon(url)
+
         if ( useTab ) {  
-            if (  getTMNTab() == null ) createTab();   
+            if (  getTMNTab() == -1 ) createTab();   
             var TMNReq = {
                 tmnQuery: queryToSend, 
                 tmnEngine: getEngineById(engine),
@@ -905,43 +920,42 @@ var engines = [
                 tmnMode: tmn_mode, 
                 tmnID : tmn_id++ 
             }
-            debug('Sending messaget to the tab '); 
             try {
-                worker_tab.port.emit("TMNTabRequest", TMNReq)	;
-                debug('Message sent to the tab'); 
-            } catch(ex) {
+				chrome.tabs.sendMessage( tmn_tab_id, TMNReq);
+				 debug('Message sent to the tab');  
+			} catch(ex) {
                 cout("Error : "+ex)
                 cout("Creating a new tab")
                 deleteTab();
-                timer.setTimeout(function() {worker_tab.port.emit("TMNTabRequest", TMNReq)},1000)	;
+                window.setTimeout(function() {chrome.tabs.sendMessage( tmn_tab_id, TMNReq)},1000)	;
             }
  
         } else { 
-
             var queryURL = queryToURL(url ,queryToSend);
-            debug("The encoded URL is " + queryURL)
-			
-            updateOnSend(queryToSend)                  
-            var req = Request({
-                url: queryURL,
-                onComplete: function (response) { 
-                    timer.clearTimeout(tmn_errTimeout);
-                    if (response.status >= 200 && response.status<400) {
-                        timer.clearTimeout(tmn_errTimeout);
+            cout("The encoded URL is " + queryURL)
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", queryURL, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    clearTimeout(tmn_errTimeout);
+                    if (xhr.status >= 200 && xhr.status<400 ) {
                         reschedule();
-                        var logEntry = createLog('query', engine, tmn_mode,  queryToSend, tmn_id++);
-                        extractQueries(response.text);
                     } else {
-                        var logEntry = createLog('error', engine, tmn_mode,  queryToSend, tmn_id);
                         rescheduleOnError(); 
+                        var logEntry = JSON.stringify({
+                            'type' : 'query', 
+                            "engine" : engine, 
+                            'mode' : tmn_mode, 
+                            'query' : queryToSend, 
+                            'id' : tmn_id++
+                        });
+                        log(logEntry);
                     }
-                    log(logEntry);
                 }
-            });
-            
-            req.get();
-            debug("Querry sent to :"+queryURL)
+            }
+            xhr.send(); 
             currentTMNURL = queryURL;
+            
         }
     }
     
@@ -1012,8 +1026,8 @@ var engines = [
         if (isBursting())   engine = burstEngine;
         else engine = chooseEngine(searchEngines.split(',')); 		     
         debug('NextSearchScheduled on: '+engine);
-        tmn_errTimeout = timer.setTimeout(rescheduleOnError, delay*3);
-        tmn_searchTimer = timer.setTimeout(doSearch, delay);
+        tmn_errTimeout = window.setTimeout(rescheduleOnError, delay*3);
+        tmn_searchTimer = window.setTimeout(doSearch, delay);
     }
 	  
     function enterBurst ( burst_engine ) {
@@ -1030,7 +1044,7 @@ var engines = [
     }
 	  
     function deleteTabWithUrl(tabURL) {
-        for each (var tab in tabs)
+        for  (var tab of tabs)
         if (tab.url == tabURL) {
             tab.close();
             return;
@@ -1041,9 +1055,9 @@ var engines = [
     function saveOptions() {
         //ss.storage.kw_black_list = kwBlackList.join(",");
         var options = getOptions();	
-        ss.storage.options_tmn = JSON.stringify(options);	
-        ss.storage.tmn_id = tmn_id;
-        ss.storage.gen_queries = JSON.stringify(TMNQueries);
+        localStorage["options_tmn"] = JSON.stringify(options);	
+        localStorage["tmn_id"] =  tmn_id;
+        localStorage["gen_queries"] = JSON.stringify(TMNQueries);
         
     }
 	
@@ -1081,14 +1095,14 @@ var engines = [
     }
 	  
     function restoreOptions () {
-        if (!ss.storage.options_tmn) {
+        if (!localStorage["options_tmn"]) {
             initOptions();
             cout("Init: "+ enabled)
             return;
         }
   
         try {
-            var options = JSON.parse(ss.storage.options_tmn);
+            var options = JSON.parse(localStorage["options_tmn"]);
             enabled = options.enabled;
             debug("Restore: "+ enabled)
             useBlackList = options.use_black_list;
@@ -1099,12 +1113,11 @@ var engines = [
             disableLogs = options.disableLogs;
             saveLogs =  options.saveLogs;
             useTab  = options.useTab;
-            if (ss.storage.gen_queries) TMNQueries = JSON.parse(ss.storage.gen_queries);
+            TMNQueries = JSON.parse(localStorage["gen_queries"]);
             feedList = options.feedList;
-            if (ss.storage.tmn_id) tmn_id = ss.storage.tmn_id;
-            if (ss.storage.logs_tmn) tmnLogs =  JSON.parse( ss.storage.logs_tmn );
-            if (ss.storage.engines) engines = JSON.parse( ss.storage.engines);
-            if (ss.storage.last_tmn_url && ss.storage.last_tmn_url != '' ) deleteTabWithUrl( ss.storage.last_tmn_url);
+            tmn_id = options.tmn_id;
+            tmnLogs =  JSON.parse( localStorage["logs_tmn"] );
+            engines = JSON.parse( localStorage["engines"]);
             if (options.kw_black_list && opions.kw_black_list.length > 0)  kwBlackList = options.kw_black_list.split(",");   
         } catch (ex) {
             cout('No option recorded: '+ex)	
@@ -1117,6 +1130,30 @@ var engines = [
         return enabled;                       
     }
 
+
+
+    function restartTMN() {
+        createTab();
+        enabled = true;
+        chrome.browserAction.setBadgeText({'text':'On'});
+        chrome.browserAction.setTitle({'title':'On'});  
+        scheduleNextSearch(4000);
+    }
+
+
+    function stopTMN() {
+        enabled = false;
+        if (useTab)
+            deleteTab();
+
+        chrome.browserAction.setBadgeBackgroundColor({
+            'color':[255,0,0,255]
+        })
+        chrome.browserAction.setBadgeText({'text':'Off'});
+        chrome.browserAction.setTitle({'title':'Off'});  
+        window.clearTimeout(tmn_searchTimer);
+        window.clearTimeout(tmn_errTimeout);
+    }
  
     function preserveTMNTab() {
         if ( useTab && enabled) {
@@ -1131,36 +1168,7 @@ var engines = [
         return val   
     }
     
-    function _readPrefs()    {
-        options.timeout = prefs.get(branch+"timeout");  
-        options.enabled = prefs.get(branch+"enabled");  
-        options.disableLogs = prefs.get(branch+"logDisabled");  
-        options.saveLogs = prefs.get(branch+"logPreserved");  
-        options.burstMode = prefs.get(branch+"burstEnabled");  
-        options.searchEngines = prefs.get(branch+"searchEngines");  
-  
-        var rssFeeds = prefs.get(branch+"rssFeedList");
-        if (rssFeeds && rssFeeds.length>0)  
-          options.feedList = rssFeeds;        
-	  }
-    
-    function addTMNContentHandler() {
-	      		var i = 0;
-	      		var prefBranch = null;
-	      		while (true) {
-	      		try {
-	      			if( prefs.get("browser.contentHandlers.types." + i + ".title") == "TrackMeNot")
-	      					return
-	      			i++;
-	      			} catch (e) {	
-	      			if (prefs) {
-	      				prefs.set("browser.contentHandlers.types."+i+".title", "TrackMeNot");
-	      				prefs.set("browser.contentHandlers.types."+i+".type", "application/vnd.mozilla.maybe.feed");
-	      				prefs.set("browser.contentHandlers.types."+i+".uri", "chrome://trackmenot/content/tmn_feed.html?tmn_feed=%s");
-	      			}
-              }
-	      		}	
-		} 
+
     		
     function log (entry) {
         if (disableLogs) return;
@@ -1179,7 +1187,7 @@ var engines = [
             cout("[ERROR] "+ ex +" / "+ ex.message +  "\nlogging msg");
         }
         tmnLogs.unshift(entry);
-        ss.storage.logs_tmn = JSON.stringify(tmnLogs);
+        chrome.storage.local.set({"logs_tmn":JSON.stringify(tmnLogs)});
     }
 
     function sendClickEvent() {
@@ -1190,11 +1198,13 @@ var engines = [
         }
     }
 	
-	
-	if (request.tmnLog) {
-                _cout("Background logging : " + request.tmnLog);
+	  function handleRequest(request, sender, sendResponse) {
+		  
+
+			if (request.tmnLog) {
+                cout("Background logging : " + request.tmnLog);
                 var logtext = JSON.parse(request.tmnLog);
-                TRACKMENOT.TMNSearch._log(logtext);
+                log(logtext);
                 sendResponse({});
                 return;   
             } 
@@ -1217,7 +1227,7 @@ var engines = [
                 return;
             }
             if ( request.setURLMap) {
-                _cout("Background handling : " + request.setURLMap);
+                cout("Background handling : " + request.setURLMap);
                 var vars = request.setURLMap.split('--');
                 var eng = vars[0];
                 var asearch = vars[1];
@@ -1228,11 +1238,11 @@ var engines = [
                     "engine" : eng, 
                     'newUrl' : asearch
                 };
-                TRACKMENOT.TMNSearch._log(logEntry);
+                TRACKMENOT.TMNSearch.log(logEntry);
                 sendResponse({});
                 return;
             }
-            //_cout("Background page received message: " + request.tmn);   
+            //cout("Background page received message: " + request.tmn);   
             switch (request.tmn) {
                 case "currentURL":
                     sendResponse({
@@ -1256,30 +1266,54 @@ var engines = [
                     break;
                 case "isActiveTab":
                     var active = (!sender.tab || sender.tab.id==tmn_tab_id);
-                    _cout("active: "+ active)
+                    cout("active: "+ active)
                     sendResponse({
                         isActive: active
                     });       
                     break;
+                case "TMNSaveOptions":
+					saveOptionFromTab(request.option);
+                    sendResponse({});
+                    break;
+				case "TMNResetOptions": 
+					resetOptions();
+                    sendResponse({});
+                    break;
+				case "TMNOptionsShowLog": 
+					sendLogToOption();
+                    sendResponse({});
+                    break;
+				case "TMNOptionsShowQueries": 
+					sendQueriesToOption();
+                    sendResponse({});
+                    break;
+				case "TMNOptionsClearLog": 
+					clearLog();
+                    sendResponse({});
+                    break;
+				case "TMNValideFeeds": 
+					validateFeeds(request.param);
+                    sendResponse({});
+                    break;
+				case "TMNAddEngine": 
+					alert(request.engine)
+					addEngine(request.engine);
+                    sendResponse({});
+                    break;
+				case "TMNDelEngine": 
+					delEngine(request.engine);
+                    sendResponse({});
+					break;
                 default:
                     sendResponse({}); // snub them.
             }
+
       
-    function handleRequest(request, sender, sendResponse) {
-        if (request.tmnLog) {
-            debug("Background logging : " + request.tmnLog);
-            var logtext = JSON.parse(request.tmnLog);
-            log(logtext);
-            return;   
-        } 
-        if (request.updateStatus) {
-            updateOnSend(request.updateStatus);
-            return;
-        }
+
         
 
     
-        debug( "Recieved message: "+ request.tmn)  
+     /*   debug( "Recieved message: "+ request.tmn)  
         switch (request.tmn) {
             case "pageLoaded": //Remove timer and then reschedule;  
                 prev_engine = engine;       
@@ -1293,7 +1327,7 @@ var engines = [
                 extractQueries(html);
                 break;
             default:
-    }
+    }*/
 } 
        
 	
@@ -1301,12 +1335,12 @@ return {
 
   _handleRequest :  function(request, sender, sendResponse) {
 			handleRequest(request, sender, sendResponse); 
-    }
+    },
 
   
     startTMN : function () {    
         restoreOptions();
-        
+        //chrome.browserAction.setPopup("tmn_menu.html");
         typeoffeeds.push('zeitgeist');
         TMNQueries.zeitgeist = zeitgeist;
         
@@ -1334,7 +1368,7 @@ return {
         monitorBurst();
 		
 		if (enabled) {
-   
+			
 			chrome.browserAction.setBadgeText({
 				'text':'ON'
 			});
@@ -1342,8 +1376,7 @@ return {
 				'title': 'TMN is ON'
 			}); 
   
-			if ( !useTab && !tmn_frame ) createFrame();    
-			else  createTab(); 
+			createTab(); 
 			scheduleNextSearch(4000);
 		} else {
 			chrome.browserAction.setBadgeText({
@@ -1353,8 +1386,7 @@ return {
 				'title': 'TMN is OFF'
 			});  
 		}
-		
-	
+
 
 	  /* Firefox Block
         if (enabled) {           
@@ -1369,13 +1401,44 @@ return {
             widget.port.emit("UpdateText", 'TMN: Off')     
         }*/
         
-        windows.on('close',function() {
+        chrome.windows.onRemoved.addListener(function() {
             deleteTab();
             if (!saveLogs) 
-                ss.storage.logs_tmn = "";
+                chrome.storage.local.set({"logs_tmn" : ""});
         });
 	  
     },
+    
+    
+    		
+	_getOptions:function() {
+            return getOptions();
+     },
+     
+     _restartTMN:function() {
+            return restartTMN();
+     },
+     
+     _stopTMN:function() {
+            return stopTMN();
+     },
+     
+     _getEngine:function() {
+            return engine;
+     },
+     
+     _getTargetEngines:function() {
+            return engines;
+     },
+     
+     _getQuery:function() {
+            return this.queryToSend;
+     },
+     
+     _saveOptions: function() {
+		 return saveOptions();
+	 },
+
 
    
  
@@ -1386,8 +1449,10 @@ return {
 
 
 
-chrome.extension.onRequest.addListener(TRACKMENOT.TMNSearch._handleRequest);
+chrome.runtime.onMessage.addListener(TRACKMENOT.TMNSearch._handleRequest);
 
 //chrome.tabs.onSelectionChanged.addListener(TRACKMENOT.TMNSearch._hideTMNTab);
 chrome.tabs.onRemoved.addListener(TRACKMENOT.TMNSearch._preserveTMNTab); 
 chrome.windows.onRemoved.addListener(TRACKMENOT.TMNSearch._deleteTabWhenClosing); 
+
+TRACKMENOT.TMNSearch.startTMN();

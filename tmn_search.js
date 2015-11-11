@@ -26,6 +26,105 @@ TRACKMENOT.TMNInjected = function() {
     var engine = '';
     //    var allEvents = ['blur','change','click','dblclick','DOMMouseScroll','focus','keydown','keypress','keyup','load','mousedown','mousemove','mouseout','mouseover','mouseup','select'];
 
+    function getYahooId() {
+        var id = "A0geu";
+        while (id.length < 24) {
+            var lower = Math.random() < .5;
+            var num = parseInt(Math.random() * 38);
+            if (num === 37) {
+                id += '_';
+                continue;
+            }
+            if (num === 36) {
+                id += '.';
+                continue;
+            }
+            if (num < 10) {
+                id += String.fromCharCode(num + 48);
+                continue;
+            }
+            num += lower ? 87 : 55;
+            id += String.fromCharCode(num);
+        }
+        //cout("GENERATED ID="+id);
+        return id;
+    }
+	var testAd_google = function(anchorClass,anchorlink) {
+            return ( anchorlink
+                && (anchorClass=='l'  || anchorClass=='l vst')
+                && anchorlink.indexOf('http')==0 
+                && anchorlink.indexOf('https')!=0);
+    }
+	
+	var testAd_yahoo= function(anchorClass,anchorlink) {
+           return ( anchorClass=='\"yschttl spt\"' || anchorClass=='yschttl spt');
+    }
+
+	var  testAd_aol = function(anchorClass,anchorlink) {
+           return (anchorClass=='\"find\"' || anchorClass=='find'
+                && anchorlink.indexOf('https')!=0 && anchorlink.indexOf('aol')<0 );
+    }
+	
+	var testAd_bing = function(anchorClass,anchorlink) {
+           return ( anchorlink
+                && anchorlink.indexOf('http')==0 
+                && anchorlink.indexOf('https')!=0 
+                && anchorlink.indexOf('msn')<0 
+                && anchorlink.indexOf('live')<0 
+                && anchorlink.indexOf('bing')<0 
+                && anchorlink.indexOf('microsoft')<0
+                && anchorlink.indexOf('WindowsLiveTranslator')<0 )    }
+	
+	var  testAd_baidu = function(anchorClass,anchorlink) {
+                       return ( anchorlink
+                && anchorlink.indexOf('baidu')<0 
+                && anchorlink.indexOf('https')!=0  );
+    }
+      	
+		
+	var getButton_google =" var getButton = function(  ) {var button = getElementsByAttrValue(document,'button', 'name', 'btnG' );		if ( !button ) button = getElementsByAttrValue(document,'button', 'name', 'btnK' );return button;}"        
+	var getButton_yahoo= " var getButton = function(  ) {return getElementsByAttrValue(document,'input', 'class', 'sbb' ); } "         
+	var getButton_bing= " var getButton = function(  ) {return document.getElementById('sb_form_go');}  "     
+	var getButton_aol = " var getButton = function (  ) {return document.getElementById('csbbtn1');   }"
+	var getButton_baidu = " var getButton = function (  ){ return getElementsByAttrValue(document,'input', 'value', '????' ); }"  
+
+
+  
+  	SearchBox_google = "var searchbox = function( ) { return getElementsByAttrValue(document,'input', 'name', 'q' ); } "       
+	 SearchBox_yahoo = "var searchbox = function(  ) { return document.getElementById('yschsp');}"        
+	 SearchBox_bing= "var searchbox = function(  ) {return document.getElementById('sb_form_q'); } "      
+	 SearchBox_aol= "var searchbox = function(  ) {return document.getElementById('csbquery1');  }"
+	 SearchBox_baidu= "var searchbox = function(  ) {return document.getElementById('kw');}"         
+    
+
+    var  suggest_google =  ['gsr' , 'td', function ( elt ) {
+            return (elt.hasAttribute('class') && elt.getAttribute('class') == 'gac_c' )
+        }]
+        
+	var suggest_yahoo = ['atgl' , 'a', function ( elt ) {
+            return elt.hasAttribute('gossiptext')
+        }]
+		
+    var suggest_bing = ['sa_drw' , 'li', function ( elt ) {
+            return (elt.hasAttribute('class') && elt.getAttribute('class') == 'sa_sg' )
+        }]
+        
+	var suggest_baidu = ['st' , 'tr', function ( elt ) {
+            return (elt.hasAttribute('class') && elt.getAttribute('class') == 'ml' )
+        }]
+		
+	var suggest_aol = ['ACC' , 'a', function ( elt ) {
+            return (elt.hasAttribute('class') && elt.getAttribute('class') == 'acs')
+        }]
+
+	var engines = [
+		{'id':'google','name':'Google Search', 'urlmap':"https://www.google.com/search?hl=en&q=|", 'regexmap':"^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$", "host":"(www\.google\.(co\.|com\.)?[a-z]{2,3})$","testad":"var testad = function(ac,al) {return ( al&& (ac=='l'  || ac=='l vst')&& al.indexOf('http')==0 && al.indexOf('https')!=0);}",'box':SearchBox_google,'button':getButton_google} ,
+		{'id':'yahoo','name':'Yahoo! Search', 'urlmap':"http://search.yahoo.com/search;_ylt=" +getYahooId()+"?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1", 'regexmap':"^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$", "host":"([a-z.]*?search\.yahoo\.com)$","testad":"var testad = function(ac,al) {return ( ac=='\"yschttl spt\"' || ac=='yschttl spt');}",'box':SearchBox_yahoo,'button':getButton_yahoo},
+		{'id':'bing','name':'Bing Search', 'urlmap':"http://www.bing.com/search?q=|", 'regexmap':"^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$", "host":"(www\.bing\.com)$","testad":"var testad = function(ac,al) {return ( al&& al.indexOf('http')==0&& al.indexOf('https')!=0 && al.indexOf('msn')<0 && al.indexOf('live')<0  && al.indexOf('bing')<0&& al.indexOf('microsoft')<0 && al.indexOf('WindowsLiveTranslator')<0 )    }",'box':SearchBox_bing,'button':getButton_bing},
+		{'id':'baidu','name':'Baidu Search', 'urlmap':"http://www.baidu.com/s?wd=|", 'regexmap':"^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$", "host":"(www\.baidu\.com)$","testad":"var testad = function(ac,al) {return ( al&& al.indexOf('baidu')<0 && al.indexOf('https')!=0  );}",'box':SearchBox_baidu,'button':getButton_baidu},
+		{'id':'aol','name':'Aol Search', 'urlmap':"http://search.aol.com/aol/search?q=|", 'regexmap':"^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$", "host":"([a-z0-9.]*?search\.aol\.com)$","testad":"var testad = function(ac,al){return(ac=='\"find\"'||ac=='find'&& al.indexOf('https')!=0 && al.indexOf('aol')<0 );}",'box':SearchBox_aol,'button':getButton_aol}
+	]
+	
     function roll(min,max){
         return Math.floor(Math.random()*(max+1))+min;
     }
@@ -60,17 +159,17 @@ TRACKMENOT.TMNInjected = function() {
     function pressEnter(elt) {
         var timers =  getTimingArray(); 
         var evtDown = document.createEvent("KeyboardEvent");
-        evtDown.initKeyEvent( "keydown", true, true, unsafeWindow, false, false, false, false, 13, 0 );  
+        evtDown.initKeyboardEvent( "keydown", true, true, document.defaultView, false, false, false, false, 13, 0 );  
         window.setTimeout(function(){
             elt.dispatchEvent(evtDown);
         },timers[0])  
         var evtPress= document.createEvent("KeyboardEvent"); 
-        evtPress.initKeyEvent( "keypress", true, true, unsafeWindow, false, false, false, false, 13, 0 ); 
+        evtPress.initKeyboardEvent( "keypress", true, true, document.defaultView, false, false, false, false, 13, 0 ); 
         window.setTimeout(function(){
             elt.dispatchEvent(evtPress);
         },timers[1])  
         var evtUp = document.createEvent("KeyboardEvent");  
-        evtUp.initKeyEvent( "keyup", true, true, unsafeWindow, false, false, false, false, 13, 0 );        
+        evtUp.initKeyboardEvent( "keyup", true, true, document.defaultView, false, false, false, false, 13, 0 );        
         window.setTimeout(function(){
             elt.dispatchEvent(evtUp);
         },timers[2])    
@@ -83,14 +182,14 @@ TRACKMENOT.TMNInjected = function() {
     function downKey(chara, searchBox) {
         var charCode = chara[chara.length-1].charCodeAt(0)
         var evtDown = document.createEvent("KeyboardEvent");
-        evtDown.initKeyEvent( "keydown", true, true, unsafeWindow, false, false, false, false, 0, charCode );   
+        evtDown.initKeyboardEvent( "keydown", true, true, document.defaultView, false, false, false, false, 0, charCode );   
         searchBox.dispatchEvent(evtDown)	
     }
     
     function pressKey(chara, searchBox) {
         var charCode = chara[chara.length-1].charCodeAt(0)
         var evtPress = document.createEvent("KeyboardEvent");
-        evtPress.initKeyEvent( "keypress", true, true, unsafeWindow, false, false, false, false, 0, charCode );   
+        evtPress.initKeyboardEvent( "keypress", true, true, document.defaultView, false, false, false, false, 0, charCode );   
         searchBox.dispatchEvent(evtPress)	
     }
     
@@ -103,7 +202,7 @@ TRACKMENOT.TMNInjected = function() {
     function releaseKey(chara, searchBox) { 
         var charCode = chara[chara.length-1].charCodeAt(0)
         var evtUp = document.createEvent("KeyboardEvent");
-        evtUp.initKeyEvent( "keyup", true, true, unsafeWindow, false, false, false, false, 0, charCode ); 
+        evtUp.initKeyboardEvent( "keyup", true, true, document.defaultView, false, false, false, false, 0, charCode ); 
         searchBox.dispatchEvent(evtUp)	
     }
 
@@ -133,7 +232,7 @@ TRACKMENOT.TMNInjected = function() {
                         'query' : link, 
                         'id':tmn_id
                     });
-                    _log(logEntry)	        
+                    log(logEntry)	        
                     try {     
                         clickElt(pageLinks[i])
                         debug("link clicked")                               
@@ -159,7 +258,7 @@ TRACKMENOT.TMNInjected = function() {
 
   
     function clickElt(elt) {
-        var win = unsafeWindow;
+        var win = document.defaultView;
         if ( !elt) return;
         var timers =  getTimingArray(); 
         var evtDown = document.createEvent("MouseEvents");
@@ -309,7 +408,7 @@ TRACKMENOT.TMNInjected = function() {
         var response = {
             url: window.location.href
         }; 
-        self.port.emit("TMNUpdateURL",response);      
+        chrome.runtime.sendMessage(response);      
     }
     
     function queryToURL ( url, query) {
@@ -340,7 +439,7 @@ TRACKMENOT.TMNInjected = function() {
             'query' : queryToSend, 
             'id' : tmn_id
         });
-        _log(logEntry)
+        log(logEntry)
         updateStatus(queryToSend);
         if ( host =="" || !host.match(reg) ) {
             try { 
@@ -348,7 +447,7 @@ TRACKMENOT.TMNInjected = function() {
                 return encodedUrl;	
             } catch (ex) {
                 cout("Caught exception: "+ ex);
-                self.port.emit("TMNSetTabUrl", {
+                chrome.runtime.sendMessage({
                     "url": encodedUrl
                 });
                 return null;
@@ -375,7 +474,7 @@ TRACKMENOT.TMNInjected = function() {
                     return encodedUrl;					
                 } catch (ex) {
                     cout("Caught exception: "+ ex);
-                    self.port.emit("TMNSetTabUrl", {
+                    chrome.runtime.sendMessage( {
                         "url": encodedUrl
                     });
                     return null;
@@ -385,31 +484,123 @@ TRACKMENOT.TMNInjected = function() {
         }   
     } 
     
+  function updateURLRegexp( eng, url) {
+	  
+	  var pre   = result[1];
+                var query = result[2];
+                var post  = result[3];
+                var eng   = result[4];
+                var asearch  = pre+'|'+post;
+                if (!tmn_tab || worker.tab.index != tmn_tab.index ) {
+                    debug("Worker find a match for url: "+ url + " on engine "+ eng +"!")
+                    if (burstEnabled)  enterBurst ( eng )
+					var engine = getEngineById(eng)
+                    if ( engine && engine.urlmap != asearch ) {
+                        engine.urlmap = asearch;          
+                        chrome.storage.set({engines :JSON.stringify(engines)}) ;
+                        var logEntry = createLog('URLmap', eng, null,null,null, asearch)
+                        log(logEntry);
+                        debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
+                    }
+                } 
+                
+        var regex = regexMap[eng];
+        cout("  regex: "+regex+"  ->\n                   "+url);
+        result = url.match(regex);
+        cout("updateURLRegexp") 
+        if (!result) {
+            cout("Can't find a regexp matching searched url")
+            return false;
+        }
+        
+        if (result.length !=4 ){
+            if (result.length ==6 && eng == "google" ) {
+                result.splice(2,2);
+                result.push(eng);
+            }
+            cout("REGEX_ERROR: "+url);
+            for (var i in result)
+                cout(" **** "+i+")"+result[i])
+        }
 
-    
+        // -- EXTRACT DATA FROM THE URL
+        var pre   = result[1];
+        var post  = result[3];
+        var asearch  = pre+'|'+post; 
+ 
+ 
+        if(eng=="google" && !url.match("^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z^\/]{2,3}\/(search){1}\?.*?[&\?]{1}q=)([^&]*)(.*)$") || url.indexOf("sclient=psy-ab")>0 || url.indexOf("#")>0 )
+            return true;
+        // -- NEW SEARCH URL: ADD TO USER_MAP
+        if (asearch ){
+            setCurrentURLMap(eng, asearch);
+        } 
+        
+        return true;
+    }
+ 
+ 
+     function checkForSearchUrl(url) {
+        var result = null;
+        for (var i=0;i< engines.length; i++){
+			var eng = engines[i]
+            var regex = eng.regexmap;
+            debug("  regex: "+regex+"  ->\n                   "+url);
+            result = url.match(regex);
+			
+            if (result)  {
+                cout(regex + " MATCHED! on "+eng.id );
+                break; 
+            }
+        }
+        if (!result)return null;
+        
+        if (result.length !=4 ){
+            if (result.length ==6 && eng.id == "google"  ) {
+                result.splice(2,2);
+                result.push(eng.id);
+                return result;
+            }
+            cout("REGEX_ERROR: "+url);
+            /* for (var i in result)
+    	        cout(" **** "+i+")"+result[i])*/
+        }
+        result.push(eng.id);    
+        return result;
+    }
+     
+    function isSafeHost( host ) {
+		for (var i=0;i< engines.length; i++){
+			var eng = engines[i]
+            var regex = eng.hostMap;	
+            cout("regex :" +regex)
+            if (host.match(regex))  {
+                return eng; 
+            }
+        }
+        return false;
+    }
+	 
 
      
     function sendPageLoaded() {
         var req = {
             tmn: "pageLoaded",
-            html: unsafeWindow.document.body.innerHTML
+            html: document.defaultView.document.body.innerHTML
         }
-        self.port.emit("TMNRequest",req); 
+       chrome.runtime.sendMessage(req); 
     } 
     
      
-    function _log(msg) {
-        var req = {
-            tmnLog: msg
-        }
-        self.port.emit("TMNRequest",req); 
+    function log(msg) {
+        chrome.runtime.sendMessage({tmnLog:msg} )
     }
      
     function updateStatus(msg) {
         var req = {
             updateStatus: msg
         } 
-        self.port.emit("TMNRequest",req); 
+        chrome.runtime.sendMessage(req); 
     }     
 
     function setCurrentURLMap( eng, url ) {
@@ -417,10 +608,25 @@ TRACKMENOT.TMNInjected = function() {
         var req = {
             setURLMap: Eng_URL
         } 
-        self.port.emit("TMNRequest",req); 
+        chrome.runtime.sendMessage(req); 
     }
      
-     
+    function notifyUserSearch(eng, url) {
+        // Here we update the regecxpfpor the queried engine
+        updateURLRegexp(eng, url);
+        chrome.runtime.sendMessage({
+            userSearch: eng
+        } );
+    }
+    
+    function getTMNCurrentURL() {
+        chrome.runtime.sendMessage({
+            tmn: "currentURL"
+        }, 
+        function(response) { 
+            setTMNCurrentURL(response.url);
+        });
+    }     
 	
     function setTMNCurrentURL(url) {
         tmnCurrentURL=  url;     
@@ -428,7 +634,7 @@ TRACKMENOT.TMNInjected = function() {
         var message = {
             url: tmnCurrentURL
         };
-        self.port.emit("TMNUpdateURL", message);
+        chrome.runtime.sendMessage( message);
         sendPageLoaded();
     }
 
@@ -442,7 +648,7 @@ TRACKMENOT.TMNInjected = function() {
         },
         
   
-        handleRequest : function(request) {
+        handleRequest : function(request, sender, sendResponse) {
             debug("Received: "+ request.tmnQuery + " on engine: "+ request.tmnEngine + " mode: " +request.tmnMode)
             if (request.tmnQuery) {       
                 var tmn_query = request.tmnQuery; 
@@ -460,11 +666,41 @@ TRACKMENOT.TMNInjected = function() {
             return; // snub them.
         } ,
         
+        
+        checkIsActiveTab : function() {     
+            chrome.runtime.sendMessage({
+                tmn: "isActiveTab"
+            }, function(response) {
+                if (response.isActive){
+                    cout('Message sent from active tab');
+                    TRACKMENOT.TMNInjected.hasLoaded(); 
+                } else {
+                    var host = window.location.host; 
+                    var eng = isSafeHost(host);
+                    if ( eng ) {
+                        cout('User search detected!!');
+                        notifyUserSearch(eng, window.location.href);
+                    }
+                }
+            } )
+        } , 
+        
+        hasLoaded :function(){
+            var host = window.location.host; 
+            if (!isSafeHost(host) ) {
+				cout ("Host "+ host+ " is unsafe")
+                window.stop();  
+                //history.go(-1);
+            }
+            //  sendPageLoaded();
+            getTMNCurrentURL();
+        },
+        
 
     }
 }();
+TRACKMENOT.TMNInjected.checkIsActiveTab();
+chrome.runtime.onMessage.addListener( TRACKMENOT.TMNInjected.handleRequest  );
 
-
-
-self.port.on("TMNTabRequest",  TRACKMENOT.TMNInjected.handleRequest  );      
-self.port.on("TMNClickResult",  TRACKMENOT.TMNInjected.clickResult  );
+/*self.port.on("TMNTabRequest",  TRACKMENOT.TMNInjected.handleRequest  );      
+self.port.on("TMNClickResult",  TRACKMENOT.TMNInjected.clickResult  );*/

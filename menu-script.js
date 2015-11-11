@@ -1,13 +1,14 @@
-  var tmn = null;  
+if(!TRACKMENOT) var TRACKMENOT = {};
+
+TRACKMENOT.Menus = function() {
+ var tmn = null;  
   var tmn_option_query = '';
   var tmn_option_engine = '';
   var options = null;
   
 
-  
-  $("#trackmenot-menu-useTab").click(toggleTabFrame);
-  $("#trackmenot-enabled").click(toggleOnOff);
-  $("#trackmenot-menu-help").click(showHelp);
+
+    
   
   function  _cout (msg) { console.log(msg);  }
   
@@ -15,43 +16,50 @@
     window.open("http://www.cs.nyu.edu/trackmenot/faq.html")
   }
 
-    
-  function toggleOnOff() {         
-        options.enabled = !options.enabled
-        tmn_options = {"options":options};	 	  			 
-        self.port.emit("TMNSaveOptions",tmn_options.options); 
-        loadMenu(tmn_options)   
-   }
+  return { 
+   toggleOnOff: function() {   
+	      options.enabled = !options.enabled      
+          if( !options.enabled) tmn._stopTMN();
+          else  tmn._restartTMN();
+          
+          tmn._saveOptions();
+          TRACKMENOT.Menus.onLoadMenu();
+   },
       
-     function toggleTabFrame() {
+   toggleTabFrame: function() {
         options.useTab = !options.useTab
-        tmn_options = {"options":options};	 	  			 
-        self.port.emit("TMNSaveOptions",tmn_options.options); 
-        loadMenu(tmn_options)
+        tmn.changeTabStatus(options.useTab);
+        tmn.saveOptions();
+        TRACKMENOT.Menus.onLoadMenu();  
+      },
+      
+
+     onLoadMenu: function( ) {
+        tmn = chrome.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
+        options = tmn._getOptions(); ;  
+        tmn_option_query = tmn._getQuery();
+        tmn_option_engine =  tmn._getEngine();
+
+         $("#trackmenot-label").html(tmn_option_engine + " '"+ tmn_option_query+"'"); 
+
+      
+		if ( options.enabled) {
+			 $("#trackmenot-enabled").html('Disable');
+			 $("#trackmenot-img-enabled").attr("src", "images/skin/off_icon.png");
+		}  else {
+			 $("#trackmenot-enabled").html('Enable');
+			 $("#trackmenot-img-enabled").attr("src", "images/skin/on_icon.png");
+		}
+			
+		if (options.useTab)  $("#trackmenot-menu-useTab").html('Stealth');
+		else $("#trackmenot-menu-useTab").html('Tab')
       }
-      
-      $("#trackmenot-menu-win").click(function() {
-          self.port.emit("TMNOpenOption")
-      })
-    
-      function loadMenu( panel_inputs) {
+  }
+}(); 
 
-        options = panel_inputs.options;  
-        if ( panel_inputs.query && panel_inputs.engine )
-            $("#trackmenot-label").html(panel_inputs.engine + " '"+ panel_inputs.query+"'"); 
-
-      
-	if ( options.enabled) {
-         $("#trackmenot-enabled").html('Disable');
-         $("#trackmenot-img-enabled").attr("src", "images/skin/off_icon.png");
-        }  else {
-         $("#trackmenot-enabled").html('Enable');
-         $("#trackmenot-img-enabled").attr("src", "images/skin/on_icon.png");
-        }
-    	
-    	  if (options.useTab)  $("#trackmenot-menu-useTab").html('Stealth');
-    	  else $("#trackmenot-menu-useTab").html('Tab')
-      
-      }
-
-self.port.on("TMNSendOption",loadMenu )
+document.addEventListener('DOMContentLoaded', function () {
+   $("#trackmenot-menu-useTab").click(TRACKMENOT.Menus.toggleTabFrame);
+  $("#trackmenot-enabled").click(TRACKMENOT.Menus.toggleOnOff);
+  $("#trackmenot-menu-win").click(function() { window.open(chrome.extension.getURL('options.html'));});
+  TRACKMENOT.Menus.onLoadMenu()
+});

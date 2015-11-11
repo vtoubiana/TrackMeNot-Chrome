@@ -1,66 +1,70 @@
 
 var tmn_options ={};
-
-$("#apply-options").click( function() {	
-    tmn_options = {"options":saveOptions()};	 	  			 
-    TMNSetOptionsMenu(tmn_options);
-    alert("Configuration saved");
-    self.port.emit("TMNSaveOptions",tmn_options.options);
-    }
-);
-
-$("#show-add").click( function() {
-		$("#add-engine-table").show();
-	}
-);
-$("#show-log").click( function() {	
-    self.port.emit("TMNOptionsShowLog");
-    }
-);
-
-$("#trackmenot-opt-showqueries").click( function() {	
-    self.port.emit("TMNOptionsShowQueries");
-    }
-);
-
-$("#validate-feed").click( function() {	
-    var feeds = $("#trackmenot-seed").val();
-    var param = {"feeds": feeds}
-    self.port.emit("TMNValideFeeds",param);
-    }
-);
-
-$("#clear-log").click( function() {	
-    self.port.emit("TMNOptionsClearLog");
-    }
-);
-
-
-$("#search-engine-list").on('click', 'button.smallbutton', function(event) {
-	var del_engine = event.target.id.split("_").pop();
-	self.port.emit("TMNDelEngine",{'engine':del_engine});
-});
-
-
-
-$("#add-engine").click( function() {	
-		var engine = {}
-    	engine.name = $("#newengine-name").val();
-		engine.urlmap = $("#newengine-map").val();
-		if(engine.urlmap.indexOf('trackmenot') <0 ) {
-			alert("Did not find 'trackmenot' in the URL")
-			return
+var tmn = chrome.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
+var options = null;
+	
+function loadHandlers() {
+	$("#apply-options").click( function() {	
+		tmn_options = {"options":saveOptions()};	 	  			 
+		TMNSetOptionsMenu(tmn_options);
+		alert("Configuration saved");
+		chrome.runtime.sendMessage({'tmn':"TMNSaveOptions",'option':tmn_options.options});
 		}
-		self.port.emit("TMNAddEngine",engine);
-    }
-);
+	);
+
+	$("#show-add").click( function() {
+			$("#add-engine-table").show();
+		}
+	);
+	$("#show-log").click( function() {	
+		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowLog"});
+		}
+	);
+
+	$("#trackmenot-opt-showqueries").click( function() {	
+		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowQueries"});
+		}
+	);
+
+	$("#validate-feed").click( function() {	
+		var feeds = $("#trackmenot-seed").val();
+		var param = {"feeds": feeds}
+		chrome.runtime.sendMessage({'tmn':"TMNValideFeeds",'param':param});
+		}
+	);
+
+	$("#clear-log").click( function() {	
+		chrome.runtime.sendMessage({'tmn':"TMNOptionsClearLog"});
+		}
+	);
 
 
-function TMNSetOptionsMenu( tab_inputs) {
-    var options = tab_inputs.options;
+	$("#search-engine-list").on('click', 'button.smallbutton', function(event) {
+		var del_engine = event.target.id.split("_").pop();
+		chrome.runtime.sendMessage({'tmn':"TMNDelEngine",'engine':del_engine});
+	});
+
+
+
+	$("#add-engine").click( function() {	
+			var engine = {}
+			engine.name = $("#newengine-name").val();
+			engine.urlmap = $("#newengine-map").val();
+			if(engine.urlmap.indexOf('trackmenot') <0 ) {
+				alert("Did not find 'trackmenot' in the URL")
+				return
+			}
+			chrome.runtime.sendMessage({'tmn':"TMNAddEngine",'engine': engine});
+		}
+	);
+}
+
+
+function TMNSetOptionsMenu( ) {
+    var options = tmn._getOptions();
     var feedList = options.feedList;
     var kw_black_list = options.kw_black_list;
-    console.log("Enabled: " +options.enabled)
+    //console.log("Enabled: " +options.enabled)
 	$("#add-engine-table").hide();
   	$("#trackmenot-opt-enabled").prop('checked', options.enabled);
   	$("#trackmenot-opt-useTab").prop('checked',options.useTab);
@@ -76,7 +80,7 @@ function TMNSetOptionsMenu( tab_inputs) {
     var engines = options.searchEngines.split(',');
     for( var i=0; i< engines.length;i++) 
         $("#"+engines[i]).prop('checked',true);
-
+	
     setFrequencyMenu(options.timeout);
 }
 
@@ -136,7 +140,7 @@ function TMNShowEngines(engines) {
 }
 
 function TMNShowQueries(param) {
-	  var queries = param.queries.split(',');
+	var queries = param.queries.split(',');
     var htmlStr = '<table witdh=500 cellspacing=3 bgcolor=white  frame=border>';
     for (var i=0; i< 3000 && i<queries.length ; i++) {
         htmlStr += '<tr style="color:Black">';
@@ -174,12 +178,47 @@ function saveOptions() {
     return options;
 }
 
+function handleRequest(request, sender, sendResponse) {
+	  if (!request.options) return;
+	  switch (request.options) {
+                case "TMNSetOptionsMenu":
+					TMNSetOptionsMenu(request.param);
+                    sendResponse({})
+                break;
+                case "TMNSendLogs":
+					TMNShowLog(request.param.logs);
+                    sendResponse({})
+                break;
+                case "TMNSendQueries":
+					TMNShowQueries(request.param.queries);
+                    sendResponse({})
+                break;
+                case "TMNSendEngines":
+					TMNShowEngines(request.param);
+                    sendResponse({})
+                break;
+                default:
+                    sendResponse({}); // snub them.
+            }
 
-        
+	
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  TMNShowEngines(tmn._getTargetEngines());
+  TMNSetOptionsMenu();
+  loadHandlers();
+});
+
+
+
+
+chrome.runtime.onMessage.addListener(handleRequest);
+ /*       
 self.port.on("TMNSetOptionsMenu",TMNSetOptionsMenu)
 self.port.on("TMNSendLogs",TMNShowLog)
 self.port.on("TMNSendQueries",TMNShowQueries)
-self.port.on("TMNSendEngines",TMNShowEngines)
+self.port.on("TMNSendEngines",TMNShowEngines)*/
    
   
 
