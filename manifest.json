@@ -2,6 +2,8 @@
 "manifest_version": 2,
   "name": "TrackMeNot",
   "version": "0.8.3",
+  "icons": { "16": "icon16.png",
+           "48": "icon32.png"},
   "description": "TMN portage on Chrome",
   "browser_action": {
     "default_icon": "tmn.png",
@@ -20,7 +22,7 @@
     }
   ],  
   "permissions": [
-  "tabs","https://*/*","webNavigation","storage"
+  "tabs","https://*/*","http://*/*","webNavigation","storage"
 ]     
 }
 

@@ -3,12 +3,16 @@ var tmn_options ={};
 var tmn = chrome.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
 var options = null;
 	
+	
+	
+
+
 function loadHandlers() {
 	$("#apply-options").click( function() {	
 		tmn_options = {"options":saveOptions()};	 	  			 
-		TMNSetOptionsMenu(tmn_options);
-		alert("Configuration saved");
 		chrome.runtime.sendMessage({'tmn':"TMNSaveOptions",'option':tmn_options.options});
+		alert("Configuration saved");
+		TMNSetOptionsMenu(tmn_options);
 		}
 	);
 
@@ -16,15 +20,10 @@ function loadHandlers() {
 			$("#add-engine-table").show();
 		}
 	);
-	$("#show-log").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowLog"});
-		}
-	);
+	$("#show-log").click( TMNShowLog );
+	
+	$("#trackmenot-opt-showqueries").click(  TMNShowQueries);
 
-	$("#trackmenot-opt-showqueries").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowQueries"});
-		}
-	);
 
 	$("#validate-feed").click( function() {	
 		var feeds = $("#trackmenot-seed").val();
@@ -33,17 +32,23 @@ function loadHandlers() {
 		}
 	);
 
-	$("#clear-log").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsClearLog"});
-		}
-	);
+	$("#clear-log").click( TMNClearLogs	);
+	
 
+	
 
-	$("#search-engine-list").on('click', 'button.smallbutton', function(event) {
+     $("#search-engine-list").on('click', 'button.smallbutton', function(event) {
 		var del_engine = event.target.id.split("_").pop();
 		chrome.runtime.sendMessage({'tmn':"TMNDelEngine",'engine':del_engine});
-	});
+	});                                               
 
+     $("#help-faq").click( function() {	
+		window.open('http://cs.nyu.edu/trackmenot/faq.html#options')
+	});                                               
+
+	$("#main-site").click( function() {	
+		window.open('http://cs.nyu.edu/trackmenot')
+	});
 
 
 	$("#add-engine").click( function() {	
@@ -95,10 +100,13 @@ function setFrequencyMenu(timeout){
 
 	
 
-	
+function TMNClearLogs() {
+	tmn._clearLogs();
+	TMNShowLog();
+}
   
-function TMNShowLog(tmnlogs) {
-	var logs = tmnlogs.logs
+function TMNShowLog() {
+	var logs = tmn._getLogs()
     var htmlStr = '<table witdh=500 cellspacing=3 bgcolor=white  frame=border>';
     htmlStr += '<thead><tr align=left>';        
     htmlStr += '<th>Engine</th>';
@@ -139,14 +147,64 @@ function TMNShowEngines(engines) {
     $('#search-engine-list').html(htmlStr);
 }
 
-function TMNShowQueries(param) {
-	var queries = param.queries.split(',');
-    var htmlStr = '<table witdh=500 cellspacing=3 bgcolor=white  frame=border>';
-    for (var i=0; i< 3000 && i<queries.length ; i++) {
-        htmlStr += '<tr style="color:Black">';
-        htmlStr += '<td>' +queries[i]+ '<td>'
-        htmlStr += '</tr>';
+function TMNShowQueries() {
+	var sources = tmn._getAllQueries();
+	var htmlStr =  '<a href="#dhs">DHS</a> | <a href="#rss"> RSS </a> | <a href="#popular"> Popular </a>|<a href="#extracted"> Extracted</a>'
+	htmlStr += '<div style="height:1000px;overflow:auto;"><table witdh=500 cellspacing=3 bgcolor=white  frame=border>';
+    if ( sources.dhs ) {
+		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
+		htmlStr += '<td > DHS Monitored <td>';
+		htmlStr += '<a name="dhs"></a>';
+		htmlStr += '</tr>';
+		for (var i=0;  i<sources.dhs.length ; i++) {
+			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
+			htmlStr += '<td>' +sources.dhs[i].category_name+ '<td>'
+			htmlStr += '</tr>';
+			for (var j=0;  j< sources.dhs[i].words.length ; j++) {
+				htmlStr += '<tr style="color:Black">';
+				htmlStr += '<td>' +sources.dhs[i].words[j]+ '<td>'
+				htmlStr += '</tr>';
+			}
+		}
     }
+	if ( sources.rss ) {
+		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
+		htmlStr += '<td > RSS <td>';
+		htmlStr += '<a name="rss"></a>';
+		htmlStr += '</tr>';
+		for (var i=0;  i<sources.rss.length ; i++) {
+			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
+			htmlStr += '<td>' +sources.rss[i].name+ '<td>'
+			htmlStr += '</tr>';
+			for (var j=0;  j< sources.rss[i].words.length ; j++) {
+				htmlStr += '<tr style="color:Black">';
+				htmlStr += '<td>' +sources.rss[i].words[j]+ '<td>'
+				htmlStr += '</tr>';
+			}
+		}
+    }
+	if ( sources.zeitgeist ) {
+		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
+		htmlStr += '<td > Popular <td>'
+		htmlStr += '<a name="popular"></a>';
+		htmlStr += '</tr>';
+		for (var i=0;  i< sources.zeitgeist.length ; i++) {
+			htmlStr += '<tr style="color:Black">';
+			htmlStr += '<td>' +sources.zeitgeist[i]+ '<td>'
+			htmlStr += '</tr>';
+		}
+    }
+	if ( sources.extracted ) {	
+		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
+		htmlStr += '<td > Extracted <td>';
+		htmlStr += '<a name="extracted"></a>';
+		htmlStr += '</tr>';
+		for (var i=0; i<sources.extracted.length ; i++) {
+			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
+			htmlStr += '<td>' +sources.extracted[i]+ '<td>'
+			htmlStr += '</tr>';
+		}
+	}
     htmlStr += '</table>';
     $('#tmn_logs_container').html(htmlStr);
 }
@@ -180,17 +238,18 @@ function saveOptions() {
 
 function handleRequest(request, sender, sendResponse) {
 	  if (!request.options) return;
+
 	  switch (request.options) {
                 case "TMNSetOptionsMenu":
 					TMNSetOptionsMenu(request.param);
                     sendResponse({})
                 break;
                 case "TMNSendLogs":
-					TMNShowLog(request.param.logs);
+					TMNShowLog(request.param);
                     sendResponse({})
                 break;
                 case "TMNSendQueries":
-					TMNShowQueries(request.param.queries);
+					TMNShowQueries(request.param);
                     sendResponse({})
                 break;
                 case "TMNSendEngines":
@@ -204,6 +263,10 @@ function handleRequest(request, sender, sendResponse) {
 	
 }
 
+
+
+
+
 document.addEventListener('DOMContentLoaded', function () {
   TMNShowEngines(tmn._getTargetEngines());
   TMNSetOptionsMenu();
@@ -213,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-chrome.runtime.onMessage.addListener(handleRequest);
+chrome.runtime.onMessage.addListener(function(){handleRequest()});
  /*       
 self.port.on("TMNSetOptionsMenu",TMNSetOptionsMenu)
 self.port.on("TMNSendLogs",TMNShowLog)
