@@ -132,11 +132,11 @@ TRACKMENOT.TMNInjected = function() {
         return s.replace(/\n/g,'');
     }
     function cout (msg) {
-        console.log(msg);
+        //console.log(msg);
     }  
     function debug (msg) {
-        if (debug_script)
-            console.log("Debug: "+msg);
+        //if (debug_script)
+          //  console.log("Debug: "+msg);
     }
 
   	function getEngineById( id) {
@@ -485,33 +485,35 @@ TRACKMENOT.TMNInjected = function() {
     } 
     
   function updateURLRegexp( eng, url) {
-	  
-	  var pre   = result[1];
-                var query = result[2];
-                var post  = result[3];
-                var eng   = result[4];
-                var asearch  = pre+'|'+post;
-                if (!tmn_tab || worker.tab.index != tmn_tab.index ) {
-                    debug("Worker find a match for url: "+ url + " on engine "+ eng +"!")
-                    if (burstEnabled)  enterBurst ( eng )
-					var engine = getEngineById(eng)
-                    if ( engine && engine.urlmap != asearch ) {
-                        engine.urlmap = asearch;          
-                        chrome.storage.set({engines :JSON.stringify(engines)}) ;
-                        var logEntry = createLog('URLmap', eng, null,null,null, asearch)
-                        log(logEntry);
-                        debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
-                    }
-                } 
-                
-        var regex = regexMap[eng];
+		var regex = regexMap[eng];
         cout("  regex: "+regex+"  ->\n                   "+url);
         result = url.match(regex);
-        cout("updateURLRegexp") 
-        if (!result) {
+		
+		if (!result) {
             cout("Can't find a regexp matching searched url")
             return false;
         }
+		/*var pre   = result[1];
+		var query = result[2];
+		var post  = result[3];
+		var eng   = result[4];
+		var asearch  = pre+'|'+post;
+		if (!tmn_tab || worker.tab.index != tmn_tab.index ) {
+			debug("Worker find a match for url: "+ url + " on engine "+ eng +"!")
+			if (burstEnabled)  enterBurst ( eng )
+			var engine = getEngineById(eng)
+			if ( engine && engine.urlmap != asearch ) {
+				engine.urlmap = asearch;          
+				chrome.storage.locale.set({engines :JSON.stringify(engines)}) ;
+				var logEntry = createLog('URLmap', eng, null,null,null, asearch)
+				log(logEntry);
+				debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
+			}
+		} */
+                
+        
+        cout("updateURLRegexp") 
+ 
         
         if (result.length !=4 ){
             if (result.length ==6 && eng == "google" ) {
@@ -585,8 +587,8 @@ TRACKMENOT.TMNInjected = function() {
      
     function sendPageLoaded() {
         var req = {
-            tmn: "pageLoaded",
-            html: document.defaultView.document.body.innerHTML
+            "tmn": "pageLoaded",
+            "html": document.defaultView.document.body.innerHTML
         }
        chrome.runtime.sendMessage(req); 
     } 
@@ -598,7 +600,7 @@ TRACKMENOT.TMNInjected = function() {
      
     function updateStatus(msg) {
         var req = {
-            updateStatus: msg
+            "updateStatus": msg
         } 
         chrome.runtime.sendMessage(req); 
     }     
@@ -615,7 +617,7 @@ TRACKMENOT.TMNInjected = function() {
         // Here we update the regecxpfpor the queried engine
         updateURLRegexp(eng, url);
         chrome.runtime.sendMessage({
-            userSearch: eng
+            "userSearch": eng
         } );
     }
     
@@ -632,7 +634,7 @@ TRACKMENOT.TMNInjected = function() {
         tmnCurrentURL=  url;     
         debug("Current TMN loc: "+ tmnCurrentURL )
         var message = {
-            url: tmnCurrentURL
+            "url": tmnCurrentURL
         };
         chrome.runtime.sendMessage( message);
         sendPageLoaded();
@@ -674,14 +676,13 @@ TRACKMENOT.TMNInjected = function() {
                 if (response.isActive){
                     cout('Message sent from active tab');
                     TRACKMENOT.TMNInjected.hasLoaded(); 
-                } else {
+                }/* else {
                     var host = window.location.host; 
                     var eng = isSafeHost(host);
                     if ( eng ) {
-                        cout('User search detected!!');
                         notifyUserSearch(eng, window.location.href);
                     }
-                }
+                }*/
             } )
         } , 
         

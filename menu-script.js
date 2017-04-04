@@ -12,11 +12,14 @@ TRACKMENOT.Menus = function() {
   
   function  _cout (msg) { console.log(msg);  }
   
-  function showHelp() {
-    window.open("http://www.cs.nyu.edu/trackmenot/faq.html")
-  }
+
 
   return { 
+	  
+   showHelp: function() {
+    window.open("http://www.cs.nyu.edu/trackmenot/faq.html")
+  },
+  
    toggleOnOff: function() {   
 	      options.enabled = !options.enabled      
           if( !options.enabled) tmn._stopTMN();
@@ -28,8 +31,8 @@ TRACKMENOT.Menus = function() {
       
    toggleTabFrame: function() {
         options.useTab = !options.useTab
-        tmn.changeTabStatus(options.useTab);
-        tmn.saveOptions();
+        tmn._changeTabStatus(options.useTab);
+        tmn._saveOptions();
         TRACKMENOT.Menus.onLoadMenu();  
       },
       
@@ -58,8 +61,9 @@ TRACKMENOT.Menus = function() {
 }(); 
 
 document.addEventListener('DOMContentLoaded', function () {
-   $("#trackmenot-menu-useTab").click(TRACKMENOT.Menus.toggleTabFrame);
+  $("#trackmenot-menu-useTab").click(TRACKMENOT.Menus.toggleTabFrame);
   $("#trackmenot-enabled").click(TRACKMENOT.Menus.toggleOnOff);
   $("#trackmenot-menu-win").click(function() { window.open(chrome.extension.getURL('options.html'));});
+  $("#trackmenot-menu-help").click(TRACKMENOT.Menus.showHelp)
   TRACKMENOT.Menus.onLoadMenu()
 });

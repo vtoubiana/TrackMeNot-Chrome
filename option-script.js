@@ -12,6 +12,17 @@ function loadHandlers() {
 		}
 	);
 
+	$("#trackmenot-opt-help").click( function() {
+			chrome.runtime.sendMessage({'tmn':"TMNOptionsOpenHelp"});
+		}
+	);
+	
+	$("#trackmenot-opt-site").click( function() {
+			chrome.runtime.sendMessage({'tmn':"TMNOptionsOpenSite"});
+
+		}
+	);
+	
 	$("#show-add").click( function() {
 			$("#add-engine-table").show();
 		}
@@ -186,11 +197,11 @@ function handleRequest(request, sender, sendResponse) {
                     sendResponse({})
                 break;
                 case "TMNSendLogs":
-					TMNShowLog(request.param.logs);
+					TMNShowLog(request.param);
                     sendResponse({})
                 break;
                 case "TMNSendQueries":
-					TMNShowQueries(request.param.queries);
+					TMNShowQueries(request.param);
                     sendResponse({})
                 break;
                 case "TMNSendEngines":
