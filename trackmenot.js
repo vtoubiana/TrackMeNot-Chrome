@@ -14,8 +14,15 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  ********************************************************************************/
 
-var _ = chrome.i18n.getMessage;
 
+var api;
+if (chrome == 'undefined') {
+		api = browser;
+	} else {
+		api = chrome;
+	}
+	
+var _ = api.i18n.getMessage;
 
 if(!TRACKMENOT) var TRACKMENOT = {};
 
@@ -181,7 +188,7 @@ var engines = [
 
 	
 	function updateEngineList() {
-		chrome.storage.locale.set({engines : JSON.stringify(engines)}) ;
+		api.storage.locale.set({engines : JSON.stringify(engines)}) ;
 		sendMessageToOptionScript("TMNSendEngines",engines);
 		sendOptionToTab();
 	}
@@ -189,7 +196,7 @@ var engines = [
 
 	
 	function sendMessageToOptionScript(title, message) {
-		chrome.runtime.sendMessage({"options":title,"param":message})
+		api.runtime.sendMessage({"options":title,"param":message})
 	}
 	
 	function handleMessageFromOptionScript(title, handler) {
@@ -198,7 +205,7 @@ var engines = [
 	
 	
 	function sendMessageToPanelScript(title, message) {
-		 chrome.runtime.sendMessage(title,message)
+		 api.runtime.sendMessage(title,message)
 	}
 	
 	function handleMessageFromPanelScript(title, handler) {
@@ -318,7 +325,7 @@ var engines = [
     function iniTab(tab) {
         tmn_tab_id = tab.id;
         tmn_win_id = tab.windowId;
-        chrome.storage.local.set({"tmn_tab_id": tmn_tab_id});
+        api.storage.local.set({"tmn_tab_id": tmn_tab_id});
     }
     
      function getTMNTab() {
@@ -327,7 +334,7 @@ var engines = [
     }
 		
     function deleteTab() {
-        chrome.tabs.remove(tmn_tab_id);
+        api.tabs.remove(tmn_tab_id);
         tmn_tab_id = -1;
     }
 	
@@ -335,7 +342,7 @@ var engines = [
         if (!useTab || tmn_tab_id != -1) return;
         if(debug) cout('Creating tab for TrackMeNot')
         try {
-            chrome.tabs.create({
+            api.tabs.create({
                 'active': false, 
                 'url': 'https://www.google.com'
             },iniTab);
@@ -443,7 +450,7 @@ var engines = [
 
 	
     function monitorBurst() {
-        chrome.webNavigation.onCommitted.addListener(function(e) {
+        api.webNavigation.onCommitted.addListener(function(e) {
 			var url = e.url;  
 			var tab_id = e.tabId;
 			var result = checkForSearchUrl(url);
@@ -468,7 +475,7 @@ var engines = [
 					var engine = getEngineById(eng)
 					if ( engine && engine.urlmap != asearch ) {
                         engine.urlmap = asearch;          
-                        chrome.storage.locale.set({engines :JSON.stringify(engines)}) ;
+                        api.storage.locale.set({engines :JSON.stringify(engines)}) ;
                         var logEntry = createLog('URLmap', eng, null,null,null, asearch)
                         log(logEntry);
                         debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
@@ -722,7 +729,12 @@ var engines = [
   
   
     function doRssFetch(feedUrl){	
-        var req;		
+        
+		if (!feedUrl)  return;
+        
+		cout("Feed Url: "+ feedUrl)	
+			
+		var req;		
         try {
             req = new XMLHttpRequest();
         } 
@@ -742,13 +754,14 @@ var engines = [
         }
         try {
             req.open('GET', feedUrl, true);
-            req.onreadystatechange = function(aEvt){
-                if (req.readyState == 4) {
-                    if (req.status == 200) 
-                        var adds = addRssTitles(req.responseXML, feedUrl);
-                }
-            };
-            req.send(null);
+            req.onreadystatechange = function() {
+			if (req.readyState == 4 ) {
+			        var doc = req.responseXML;
+					cout(doc)
+                    addRssTitles(doc, feedUrl);
+				}
+			};
+            req.send();
         } catch (ex) {
             cout("[WARN]  doRssFetch("+feedUrl+")\n"
                 +"  "+ex.message+" | Using defaults..."); 
@@ -800,11 +813,11 @@ var engines = [
         var tooltip = {
             'title': 'TMN Error'
         };
-        chrome.browserAction.setBadgeBackgroundColor({
+        api.browserAction.setBadgeBackgroundColor({
             'color':[255,0,0,255]
         })
-        chrome.browserAction.setBadgeText(details);
-        chrome.browserAction.setTitle(tooltip);  
+        api.browserAction.setBadgeText(details);
+        api.browserAction.setTitle(tooltip);  
     }
     	
     function updateOnSend ( queryToSend ) {
@@ -815,11 +828,11 @@ var engines = [
         var tooltip = {
             'title': engine+': '+queryToSend
         };
-        chrome.browserAction.setBadgeBackgroundColor({
+        api.browserAction.setBadgeBackgroundColor({
             'color':[113,113,198,255]
         })
-        chrome.browserAction.setBadgeText(details);
-        chrome.browserAction.setTitle(tooltip);  
+        api.browserAction.setBadgeText(details);
+        api.browserAction.setTitle(tooltip);  
     }          
   	
     function createLog(type,engine,mode,query,id,asearch) {
@@ -887,13 +900,13 @@ var engines = [
                 tmnID : tmn_id++ 
             }
             try {
-				chrome.tabs.sendMessage( tmn_tab_id, TMNReq);
+				api.tabs.sendMessage( tmn_tab_id, TMNReq);
 				 debug('Message sent to the tab');  
 			} catch(ex) {
                 cout("Error : "+ex)
                 cout("Creating a new tab")
                 deleteTab();
-                window.setTimeout(function() {chrome.tabs.sendMessage( tmn_tab_id, TMNReq)},1000)	;
+                window.setTimeout(function() {api.tabs.sendMessage( tmn_tab_id, TMNReq)},1000)	;
             }
  
         } else { 
@@ -1102,8 +1115,8 @@ var engines = [
     function restartTMN() {
         createTab();
         enabled = true;
-        chrome.browserAction.setBadgeText({'text':'On'});
-        chrome.browserAction.setTitle({'title':'On'});  
+        api.browserAction.setBadgeText({'text':'On'});
+        api.browserAction.setTitle({'title':'On'});  
         scheduleNextSearch(4000);
     }
 
@@ -1113,11 +1126,11 @@ var engines = [
         if (useTab)
             deleteTab();
 
-        chrome.browserAction.setBadgeBackgroundColor({
+        api.browserAction.setBadgeBackgroundColor({
             'color':[255,0,0,255]
         })
-        chrome.browserAction.setBadgeText({'text':'Off'});
-        chrome.browserAction.setTitle({'title':'Off'});  
+        api.browserAction.setBadgeText({'text':'Off'});
+        api.browserAction.setTitle({'title':'Off'});  
         window.clearTimeout(tmn_searchTimer);
         window.clearTimeout(tmn_errTimeout);
     }
@@ -1147,7 +1160,7 @@ var engines = [
             cout("[ERROR] "+ ex +" / "+ ex.message +  "\nlogging msg");
         }
         tmnLogs.unshift(entry);
-        chrome.storage.local.set({"logs_tmn":JSON.stringify(tmnLogs)});
+        api.storage.local.set({"logs_tmn":JSON.stringify(tmnLogs)});
     }
 
     function sendClickEvent() {
@@ -1266,13 +1279,13 @@ var engines = [
                     sendResponse({});
 					break;
 				case	"TMNOptionsOpenSite":
-					chrome.tabs.create({
+					api.tabs.create({
 						url:"https://cs.nyu.edu/trackmenot"
 					});
 					sendResponse({});
 					break;
 				case "TMNOptionsOpenHelp":
-					chrome.tabs.create({
+					api.tabs.create({
 						url:"http://cs.nyu.edu/trackmenot/faq.html#options"
 					});
 					sendResponse({});
@@ -1313,7 +1326,7 @@ return {
   
     startTMN : function () {    
         restoreOptions();
-        //chrome.browserAction.setPopup("tmn_menu.html");
+        //api.browserAction.setPopup("tmn_menu.html");
         typeoffeeds.push('zeitgeist');
         TMNQueries.zeitgeist = zeitgeist;
         
@@ -1342,31 +1355,31 @@ return {
 		
 		if (enabled) {
 			
-			chrome.browserAction.setBadgeText({
+			api.browserAction.setBadgeText({
 				'text':'ON'
 			});
-			chrome.browserAction.setTitle({
+			api.browserAction.setTitle({
 				'title': 'TMN is ON'
 			}); 
   
 			createTab(); 
 			scheduleNextSearch(4000);
 		} else {
-			chrome.browserAction.setBadgeText({
+			api.browserAction.setBadgeText({
 				'text':'OFF'
 			});
-			chrome.browserAction.setTitle({
+			api.browserAction.setTitle({
 				'title': 'TMN is OFF'
 			});  
 		}
 
         
-        chrome.windows.onRemoved.addListener(function() {
+        api.windows.onRemoved.addListener(function() {
             if (useTabe) {
 				deleteTab();
 			}
             if (!saveLogs) 
-                chrome.storage.local.set({"logs_tmn" : ""});
+                api.storage.local.set({"logs_tmn" : ""});
         });
 	  
     },
@@ -1422,9 +1435,9 @@ return {
 
 
 
-chrome.runtime.onMessage.addListener(TRACKMENOT.TMNSearch._handleRequest);
+api.runtime.onMessage.addListener(TRACKMENOT.TMNSearch._handleRequest);
 
-//chrome.tabs.onSelectionChanged.addListener(TRACKMENOT.TMNSearch._hideTMNTab);
-chrome.tabs.onRemoved.addListener(TRACKMENOT.TMNSearch._preserveTMNTab); 
+//api.tabs.onSelectionChanged.addListener(TRACKMENOT.TMNSearch._hideTMNTab);
+api.tabs.onRemoved.addListener(TRACKMENOT.TMNSearch._preserveTMNTab); 
 
 TRACKMENOT.TMNSearch.startTMN();

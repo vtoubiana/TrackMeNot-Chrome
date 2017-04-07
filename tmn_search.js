@@ -14,6 +14,13 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************************/
 
+var api;
+if (chrome == 'undefined') {
+		api = browser;
+	} else {
+		api = chrome;
+	}
+
 if(!TRACKMENOT) var TRACKMENOT = {};
   
 
@@ -158,18 +165,15 @@ TRACKMENOT.TMNInjected = function() {
 	
     function pressEnter(elt) {
         var timers =  getTimingArray(); 
-        var evtDown = document.createEvent("KeyboardEvent");
-        evtDown.initKeyboardEvent( "keydown", true, true, document.defaultView, false, false, false, false, 13, 0 );  
+        var evtDown = new KeyboardEvent( "keydown",  {"keyCode":13});  
         window.setTimeout(function(){
             elt.dispatchEvent(evtDown);
         },timers[0])  
-        var evtPress= document.createEvent("KeyboardEvent"); 
-        evtPress.initKeyboardEvent( "keypress", true, true, document.defaultView, false, false, false, false, 13, 0 ); 
+        var evtPress= new KeyboardEvent( "keypress",  {"keyCode":13}); 
         window.setTimeout(function(){
             elt.dispatchEvent(evtPress);
         },timers[1])  
-        var evtUp = document.createEvent("KeyboardEvent");  
-        evtUp.initKeyboardEvent( "keyup", true, true, document.defaultView, false, false, false, false, 13, 0 );        
+        var evtUp = new KeyboardEvent( "keyup", {"keyCode":13});        
         window.setTimeout(function(){
             elt.dispatchEvent(evtUp);
         },timers[2])    
@@ -181,15 +185,13 @@ TRACKMENOT.TMNInjected = function() {
    
     function downKey(chara, searchBox) {
         var charCode = chara[chara.length-1].charCodeAt(0)
-        var evtDown = document.createEvent("KeyboardEvent");
-        evtDown.initKeyboardEvent( "keydown", true, true, document.defaultView, false, false, false, false, 0, charCode );   
+        var evtDown = new KeyboardEvent("keydown", {"charCode":charCode} );   
         searchBox.dispatchEvent(evtDown)	
     }
     
     function pressKey(chara, searchBox) {
         var charCode = chara[chara.length-1].charCodeAt(0)
-        var evtPress = document.createEvent("KeyboardEvent");
-        evtPress.initKeyboardEvent( "keypress", true, true, document.defaultView, false, false, false, false, 0, charCode );   
+        var evtPress = new KeyboardEvent("keypress", {"charCode":charCode});   
         searchBox.dispatchEvent(evtPress)	
     }
     
@@ -201,8 +203,7 @@ TRACKMENOT.TMNInjected = function() {
     
     function releaseKey(chara, searchBox) { 
         var charCode = chara[chara.length-1].charCodeAt(0)
-        var evtUp = document.createEvent("KeyboardEvent");
-        evtUp.initKeyboardEvent( "keyup", true, true, document.defaultView, false, false, false, false, 0, charCode ); 
+        var evtUp = new KeyboardEvent( "keyup", {"charCode":charCode}); 
         searchBox.dispatchEvent(evtUp)	
     }
 
@@ -408,7 +409,7 @@ TRACKMENOT.TMNInjected = function() {
         var response = {
             url: window.location.href
         }; 
-        chrome.runtime.sendMessage(response);      
+        browser.runtime.sendMessage(response);      
     }
     
     function queryToURL ( url, query) {
@@ -447,7 +448,7 @@ TRACKMENOT.TMNInjected = function() {
                 return encodedUrl;	
             } catch (ex) {
                 cout("Caught exception: "+ ex);
-                chrome.runtime.sendMessage({
+                browser.runtime.sendMessage({
                     "url": encodedUrl
                 });
                 return null;
@@ -474,7 +475,7 @@ TRACKMENOT.TMNInjected = function() {
                     return encodedUrl;					
                 } catch (ex) {
                     cout("Caught exception: "+ ex);
-                    chrome.runtime.sendMessage( {
+                    browser.runtime.sendMessage( {
                         "url": encodedUrl
                     });
                     return null;
@@ -504,7 +505,7 @@ TRACKMENOT.TMNInjected = function() {
 			var engine = getEngineById(eng)
 			if ( engine && engine.urlmap != asearch ) {
 				engine.urlmap = asearch;          
-				chrome.storage.locale.set({engines :JSON.stringify(engines)}) ;
+				browser.storage.locale.set({engines :JSON.stringify(engines)}) ;
 				var logEntry = createLog('URLmap', eng, null,null,null, asearch)
 				log(logEntry);
 				debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
@@ -590,19 +591,19 @@ TRACKMENOT.TMNInjected = function() {
             "tmn": "pageLoaded",
             "html": document.defaultView.document.body.innerHTML
         }
-       chrome.runtime.sendMessage(req); 
+       browser.runtime.sendMessage(req); 
     } 
     
      
     function log(msg) {
-        chrome.runtime.sendMessage({tmnLog:msg} )
+        browser.runtime.sendMessage({tmnLog:msg} )
     }
      
     function updateStatus(msg) {
         var req = {
             "updateStatus": msg
         } 
-        chrome.runtime.sendMessage(req); 
+        browser.runtime.sendMessage(req); 
     }     
 
     function setCurrentURLMap( eng, url ) {
@@ -610,19 +611,19 @@ TRACKMENOT.TMNInjected = function() {
         var req = {
             setURLMap: Eng_URL
         } 
-        chrome.runtime.sendMessage(req); 
+        browser.runtime.sendMessage(req); 
     }
      
     function notifyUserSearch(eng, url) {
         // Here we update the regecxpfpor the queried engine
         updateURLRegexp(eng, url);
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
             "userSearch": eng
         } );
     }
     
     function getTMNCurrentURL() {
-        chrome.runtime.sendMessage({
+        browser.runtime.sendMessage({
             tmn: "currentURL"
         }, 
         function(response) { 
@@ -636,7 +637,7 @@ TRACKMENOT.TMNInjected = function() {
         var message = {
             "url": tmnCurrentURL
         };
-        chrome.runtime.sendMessage( message);
+        browser.runtime.sendMessage( message);
         sendPageLoaded();
     }
 
@@ -670,7 +671,7 @@ TRACKMENOT.TMNInjected = function() {
         
         
         checkIsActiveTab : function() {     
-            chrome.runtime.sendMessage({
+            browser.runtime.sendMessage({
                 tmn: "isActiveTab"
             }, function(response) {
                 if (response.isActive){
@@ -701,7 +702,7 @@ TRACKMENOT.TMNInjected = function() {
     }
 }();
 TRACKMENOT.TMNInjected.checkIsActiveTab();
-chrome.runtime.onMessage.addListener( TRACKMENOT.TMNInjected.handleRequest  );
+browser.runtime.onMessage.addListener( TRACKMENOT.TMNInjected.handleRequest  );
 
 /*self.port.on("TMNTabRequest",  TRACKMENOT.TMNInjected.handleRequest  );      
 self.port.on("TMNClickResult",  TRACKMENOT.TMNInjected.clickResult  );*/

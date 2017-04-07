@@ -1,6 +1,12 @@
-
+var api;
+if (chrome == 'undefined') {
+		api = browser;
+	} else {
+		api = chrome;
+	}
+	
 var tmn_options ={};
-var tmn = chrome.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
+var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
 var options = null;
 	
 function loadHandlers() {
@@ -8,17 +14,17 @@ function loadHandlers() {
 		tmn_options = {"options":saveOptions()};	 	  			 
 		TMNSetOptionsMenu(tmn_options);
 		alert("Configuration saved");
-		chrome.runtime.sendMessage({'tmn':"TMNSaveOptions",'option':tmn_options.options});
+		api.runtime.sendMessage({'tmn':"TMNSaveOptions",'option':tmn_options.options});
 		}
 	);
 
 	$("#trackmenot-opt-help").click( function() {
-			chrome.runtime.sendMessage({'tmn':"TMNOptionsOpenHelp"});
+			api.runtime.sendMessage({'tmn':"TMNOptionsOpenHelp"});
 		}
 	);
 	
 	$("#trackmenot-opt-site").click( function() {
-			chrome.runtime.sendMessage({'tmn':"TMNOptionsOpenSite"});
+			api.runtime.sendMessage({'tmn':"TMNOptionsOpenSite"});
 
 		}
 	);
@@ -28,31 +34,31 @@ function loadHandlers() {
 		}
 	);
 	$("#show-log").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowLog"});
+		api.runtime.sendMessage({'tmn':"TMNOptionsShowLog"});
 		}
 	);
 
 	$("#trackmenot-opt-showqueries").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsShowQueries"});
+		api.runtime.sendMessage({'tmn':"TMNOptionsShowQueries"});
 		}
 	);
 
 	$("#validate-feed").click( function() {	
 		var feeds = $("#trackmenot-seed").val();
 		var param = {"feeds": feeds}
-		chrome.runtime.sendMessage({'tmn':"TMNValideFeeds",'param':param});
+		api.runtime.sendMessage({'tmn':"TMNValideFeeds",'param':param});
 		}
 	);
 
 	$("#clear-log").click( function() {	
-		chrome.runtime.sendMessage({'tmn':"TMNOptionsClearLog"});
+		api.runtime.sendMessage({'tmn':"TMNOptionsClearLog"});
 		}
 	);
 
 
 	$("#search-engine-list").on('click', 'button.smallbutton', function(event) {
 		var del_engine = event.target.id.split("_").pop();
-		chrome.runtime.sendMessage({'tmn':"TMNDelEngine",'engine':del_engine});
+		api.runtime.sendMessage({'tmn':"TMNDelEngine",'engine':del_engine});
 	});
 
 
@@ -65,7 +71,7 @@ function loadHandlers() {
 				alert("Did not find 'trackmenot' in the URL")
 				return
 			}
-			chrome.runtime.sendMessage({'tmn':"TMNAddEngine",'engine': engine});
+			api.runtime.sendMessage({'tmn':"TMNAddEngine",'engine': engine});
 		}
 	);
 }
@@ -224,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-chrome.runtime.onMessage.addListener(handleRequest);
+api.runtime.onMessage.addListener(handleRequest);
  /*       
 self.port.on("TMNSetOptionsMenu",TMNSetOptionsMenu)
 self.port.on("TMNSendLogs",TMNShowLog)

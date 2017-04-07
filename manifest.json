@@ -22,7 +22,7 @@
     }
   ],  
   "permissions": [
-  "tabs","https://*/*","webNavigation","storage"
+  "tabs","https://*/*","http://*/*","webNavigation","storage"
 ]     
 }
 
