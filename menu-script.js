@@ -1,5 +1,5 @@
 var api;
-if (chrome == 'undefined') {
+if (chrome == undefined) {
 		api = browser;
 	} else {
 		api = chrome;

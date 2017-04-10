@@ -1,5 +1,5 @@
 var api;
-if (chrome == 'undefined') {
+if (chrome == undefined) {
 		api = browser;
 	} else {
 		api = chrome;
@@ -11,10 +11,9 @@ var options = null;
 	
 function loadHandlers() {
 	$("#apply-options").click( function() {	
-		tmn_options = {"options":saveOptions()};	 	  			 
-		TMNSetOptionsMenu(tmn_options);
-		alert("Configuration saved");
-		api.runtime.sendMessage({'tmn':"TMNSaveOptions",'option':tmn_options.options});
+		tmn_options = {"options":saveOptions()};
+		api.runtime.sendMessage({'tmn':"TMNSaveOptions",'options':tmn_options.options});		
+		TMNSetOptionsMenu(tmn_options);	
 		}
 	);
 

@@ -16,7 +16,7 @@
 
 
 var api;
-if (chrome == 'undefined') {
+if (chrome == undefined) {
 		api = browser;
 	} else {
 		api = chrome;
@@ -31,7 +31,7 @@ TRACKMENOT.TMNSearch = function() {
     var tmn_tab = null;
     var useTab = false;
     var enabled = true;
-    var debug_ = true;
+    var debug_ = false;
     var load_full_pages = false;
     var stop_when = "start"
     var useIncrementals = true;
@@ -61,6 +61,7 @@ TRACKMENOT.TMNSearch = function() {
     var tmn_mode = 'timed';
     var tmn_errTimeout = null;
     var tmn_scheduledSearch = false;
+	var tmn_hasloaded = false;
     var tmn_query='No query sent yet';
     var currentTMNURL = '';
     var tmn_option_tab = null;
@@ -240,8 +241,8 @@ var engines = [
         debug("Sending perameters")
         var panel_inputs = {"options":getOptions(), "query" : tmn_query, "engine":prev_engine }
         sendMessageToPanelScript("TMNSendOption",panel_inputs) 
-        tmn_panel.port.on("TMNOpenOption",openOptionWindow)
-        tmn_panel.port.on("TMNSaveOptions",saveOptionFromTab)
+        //tmn_panel.port.on("TMNOpenOption",openOptionWindow)
+        //tmn_panel.port.on("TMNSaveOptions",saveOptionFromTab)
     }
     
     function openOptionWindow() {
@@ -888,7 +889,7 @@ var engines = [
         }
         if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase();
         if (queryToSend[0]==' ' ) queryToSend = queryToSend.substr(1); //remove the first space ;
-
+		tmn_hasloaded = false;
         if ( useTab ) {  
             if (  getTMNTab() == -1 ) createTab();   
             var TMNReq = {
@@ -901,7 +902,7 @@ var engines = [
             }
             try {
 				api.tabs.sendMessage( tmn_tab_id, TMNReq);
-				 debug('Message sent to the tab');  
+				cout('Message sent to the tab: ' + tmn_tab_id + ' : '+TMNReq.tmnID);  
 			} catch(ex) {
                 cout("Error : "+ex)
                 cout("Creating a new tab")
@@ -926,6 +927,7 @@ var engines = [
                             'id' : tmn_id++
                         };
                         log(logEntry);
+						tmn_hasloaded = true;
                         reschedule();
                     } else {
                         rescheduleOnError(); 
@@ -1003,6 +1005,7 @@ var engines = [
                 delay += delay*(Math.random()-.5);
             }
         }
+		prev_engine = engine;  
         if (isBursting())   engine = burstEngine;
         else engine = chooseEngine(searchEngines.split(',')); 		     
         debug('NextSearchScheduled on: '+engine);
@@ -1035,9 +1038,9 @@ var engines = [
     function saveOptions() {
         //ss.storage.kw_black_list = kwBlackList.join(",");
         var options = getOptions();	
-        localStorage["options_tmn"] = JSON.stringify(options);	
-        localStorage["tmn_id"] =  tmn_id;
-        localStorage["gen_queries"] = JSON.stringify(TMNQueries);
+        api.storage.local.set({"options_tmn":  JSON.stringify(options)});	
+        api.storage.local.set({"tmn_id": tmn_id});
+        api.storage.local.set({"gen_queries":JSON.stringify(TMNQueries)});
         
     }
 	
@@ -1075,14 +1078,14 @@ var engines = [
     }
 	  
     function restoreOptions () {
-        if (!localStorage["options_tmn"]) {
+        if (!api.storage.local.get("options_tmn")) {
             initOptions();
             cout("Init: "+ enabled)
             return;
         }
   
         try {
-            var options = JSON.parse(localStorage["options_tmn"]);
+            var options = JSON.parse(api.storage.local.get("options_tmn"));
             enabled = options.enabled;
             debug("Restore: "+ enabled)
             useBlackList = options.use_black_list;
@@ -1093,11 +1096,12 @@ var engines = [
             disableLogs = options.disableLogs;
             saveLogs =  options.saveLogs;
             useTab  = options.useTab;
-            TMNQueries = JSON.parse(localStorage["gen_queries"]);
+            TMNQueries = JSON.parse(api.storage.local.get("gen_queries"));
             feedList = options.feedList;
-            tmn_id = options.tmn_id;
-            tmnLogs =  JSON.parse( localStorage["logs_tmn"] );
-            engines = JSON.parse( localStorage["engines"]);
+			if (options.tmn_id > 0)
+				tmn_id = options.tmn_id;
+            tmnLogs =  JSON.parse( api.storage.local.get("logs_tmn") );
+            engines = JSON.parse( api.storage.local.get("engines"));
             if (options.kw_black_list && opions.kw_black_list.length > 0)  kwBlackList = options.kw_black_list.split(",");   
         } catch (ex) {
             cout('No option recorded: '+ex)	
@@ -1164,8 +1168,9 @@ var engines = [
     }
 
     function sendClickEvent() {
+		cout("Will send click event on: " + prev_engine)
         try {
-            worker_tab.port.emit("TMNClickResult",{"tmn_engine":getEngineById(prev_engine)});
+            api.tabs.sendMessage( tmn_tab_id, {click_eng:getEngineById(prev_engine)});
         }catch(ex){
             cout(ex)
         }
@@ -1206,7 +1211,7 @@ var engines = [
                 var eng = vars[0];
                 var asearch = vars[1];
                 currentUrlMap[eng] = asearch;
-                localStorage["url_map_tmn"] = JSON.stringify(currentUrlMap) ;
+                api.storage.local.set({"url_map_tmn": JSON.stringify(currentUrlMap)}) ;
                 var logEntry = {
                     'type' : 'URLmap', 
                     "engine" : eng, 
@@ -1229,9 +1234,16 @@ var engines = [
                     });
                     break;
                 case "pageLoaded": //Remove timer and then reschedule;       
-                    clearTimeout(tmn_errTimeout);
-                    reschedule();
-                    sendResponse({});
+                    if (!tmn_hasloaded) {
+						tmn_hasloaded = true;
+						clearTimeout(tmn_errTimeout);
+						reschedule();
+						if (Math.random() < 1) {
+							var time = roll(10, 1000)              
+							window.setTimeout(sendClickEvent , time);
+						}
+						sendResponse({});
+					}
                     break;
                 case "tmnError": //Remove timer and then reschedule;       
                     clearTimeout(tmn_errTimeout);
@@ -1246,7 +1258,7 @@ var engines = [
                     });       
                     break;
                 case "TMNSaveOptions":
-					saveOptionFromTab(request.option);
+					saveOptionFromTab(request.options);
                     sendResponse({});
                     break;
 				case "TMNResetOptions": 
