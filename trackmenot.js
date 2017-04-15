@@ -160,7 +160,7 @@ TRACKMENOT.TMNSearch = function() {
 																												
 
 
-var engines = [
+var default_engines = [
 		{'id':'google','name':'Google Search', 'urlmap':"https://www.google.com/search?hl=en&q=|", 'regexmap':"^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$", "host":"(www\.google\.(co\.|com\.)?[a-z]{2,3})$","testad":"var testad = function(ac,al) {return ( al&& (ac=='l'  || ac=='l vst')&& al.indexOf('http')==0 && al.indexOf('https')!=0);}",'box':SearchBox_google,'button':getButton_google} ,
 		{'id':'yahoo','name':'Yahoo! Search', 'urlmap':"https://search.yahoo.com/search;_ylt=" +getYahooId()+"?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1", 'regexmap':"^(https:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$", "host":"([a-z.]*?search\.yahoo\.com)$","testad":"var testad = function(ac,al) {return ( ac=='\"yschttl spt\"' || ac=='yschttl spt');}",'box':SearchBox_yahoo,'button':getButton_yahoo},
 		{'id':'bing','name':'Bing Search', 'urlmap':"https://www.bing.com/search?q=|", 'regexmap':"^(https:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$", "host":"(www\.bing\.com)$","testad":"var testad = function(ac,al) {return ( al&& al.indexOf('http')==0&& al.indexOf('https')!=0 && al.indexOf('msn')<0 && al.indexOf('live')<0  && al.indexOf('bing')<0&& al.indexOf('microsoft')<0 && al.indexOf('WindowsLiveTranslator')<0 )    }",'box':SearchBox_bing,'button':getButton_bing},
@@ -189,7 +189,7 @@ var engines = [
 
 	
 	function updateEngineList() {
-		api.storage.locale.set({engines : JSON.stringify(engines)}) ;
+		localStorage['engines'] = JSON.stringify(engines);
 		sendMessageToOptionScript("TMNSendEngines",engines);
 		sendOptionToTab();
 	}
@@ -326,7 +326,7 @@ var engines = [
     function iniTab(tab) {
         tmn_tab_id = tab.id;
         tmn_win_id = tab.windowId;
-        api.storage.local.set({"tmn_tab_id": tmn_tab_id});
+        localStorage["tmn_tab_id"] =  tmn_tab_id;
     }
     
      function getTMNTab() {
@@ -377,8 +377,8 @@ var engines = [
 		var kw_param = query_params[0].split('?')[1].split('&').pop();
 		new_engine.regexmap = '^('+ map.replace(/\//g,"\\/").replace(/\./g,"\\.").split('?')[0] + "\\?.*?[&\\?]{1}" +kw_param+")([^&]*)(.*)$"
 		engines.push(new_engine);
-		debug("Added engine : "+ new_engine.name + " url map is " + new_engine.urlmap )
-		updateEngineList
+		cout("Added engine : "+ new_engine.name + " url map is " + new_engine.urlmap )
+		updateEngineList();
 	}
 	
 
@@ -476,7 +476,7 @@ var engines = [
 					var engine = getEngineById(eng)
 					if ( engine && engine.urlmap != asearch ) {
                         engine.urlmap = asearch;          
-                        api.storage.locale.set({engines :JSON.stringify(engines)}) ;
+                        localStorage['engines'] = JSON.stringify(engines) ;
                         var logEntry = createLog('URLmap', eng, null,null,null, asearch)
                         log(logEntry);
                         debug("Updated url fr search engine "+ eng + ", new url is "+asearch);
@@ -1038,9 +1038,11 @@ var engines = [
     function saveOptions() {
         //ss.storage.kw_black_list = kwBlackList.join(",");
         var options = getOptions();	
-        api.storage.local.set({"options_tmn":  JSON.stringify(options)});	
-        api.storage.local.set({"tmn_id": tmn_id});
-        api.storage.local.set({"gen_queries":JSON.stringify(TMNQueries)});
+		cout("Save option: "+JSON.stringify(options));
+        localStorage["options_tmn"] =  JSON.stringify(options);	
+        localStorage["tmn_id"] = tmn_id;
+		localStorage["engines"] = engines;
+        localStorage["gen_queries"] = JSON.stringify(TMNQueries);
         
     }
 	
@@ -1078,14 +1080,16 @@ var engines = [
     }
 	  
     function restoreOptions () {
-        if (!api.storage.local.get("options_tmn")) {
+
+        if (!localStorage["options_tmn"] ) {
             initOptions();
+			engines = default_engines;
             cout("Init: "+ enabled)
             return;
         }
-  
-        try {
-            var options = JSON.parse(api.storage.local.get("options_tmn"));
+
+
+            var options = JSON.parse(localStorage["options_tmn"] );
             enabled = options.enabled;
             debug("Restore: "+ enabled)
             useBlackList = options.use_black_list;
@@ -1096,16 +1100,29 @@ var engines = [
             disableLogs = options.disableLogs;
             saveLogs =  options.saveLogs;
             useTab  = options.useTab;
-            TMNQueries = JSON.parse(api.storage.local.get("gen_queries"));
+            TMNQueries = JSON.parse(localStorage["gen_queries"]);
             feedList = options.feedList;
+			try {
+			cout(localStorage['engines'])
+				var saved_engines = JSON.parse( localStorage['engines']);
+				engines = saved_engines;
+			} catch (ex) {
+				engines = default_engines;
+			}
+
 			if (options.tmn_id > 0)
 				tmn_id = options.tmn_id;
-            tmnLogs =  JSON.parse( api.storage.local.get("logs_tmn") );
-            engines = JSON.parse( api.storage.local.get("engines"));
-            if (options.kw_black_list && opions.kw_black_list.length > 0)  kwBlackList = options.kw_black_list.split(",");   
-        } catch (ex) {
-            cout('No option recorded: '+ex)	
-        }
+			if (options.kw_black_list )  {
+				cout("Restoring BlackList")
+				kwBlackList = options.kw_black_list.split(",");   
+				cout("BlackList: "+ options.kw_black_list) 
+			}
+			try {
+				tmnLogs =  JSON.parse( localStorage["logs_tmn"]);
+            } catch (ex) {
+				cout("can not restore logs")
+			}
+
     }
 	  
 
@@ -1164,7 +1181,7 @@ var engines = [
             cout("[ERROR] "+ ex +" / "+ ex.message +  "\nlogging msg");
         }
         tmnLogs.unshift(entry);
-        api.storage.local.set({"logs_tmn":JSON.stringify(tmnLogs)});
+        localStorage["logs_tmn"]=JSON.stringify(tmnLogs);
     }
 
     function sendClickEvent() {
@@ -1211,7 +1228,7 @@ var engines = [
                 var eng = vars[0];
                 var asearch = vars[1];
                 currentUrlMap[eng] = asearch;
-                api.storage.local.set({"url_map_tmn": JSON.stringify(currentUrlMap)}) ;
+                localStorage["url_map_tmn"]= JSON.stringify(currentUrlMap) ;
                 var logEntry = {
                     'type' : 'URLmap', 
                     "engine" : eng, 
@@ -1282,7 +1299,6 @@ var engines = [
                     sendResponse({});
                     break;
 				case "TMNAddEngine": 
-					alert(request.engine)
 					addEngine(request.engine);
                     sendResponse({});
                     break;
@@ -1336,7 +1352,7 @@ return {
     },
 
   
-    startTMN : function () {    
+    startTMN : function () {   	
         restoreOptions();
         //api.browserAction.setPopup("tmn_menu.html");
         typeoffeeds.push('zeitgeist');
@@ -1360,9 +1376,8 @@ return {
             readDHSList();
             typeoffeeds.push('dhs');
         }
-        
-        var engines = searchEngines.split(',');           
-        engine = chooseEngine(engines);
+                  
+        engine = chooseEngine(searchEngines.split(','));
         monitorBurst();
 		
 		if (enabled) {
@@ -1391,7 +1406,7 @@ return {
 				deleteTab();
 			}
             if (!saveLogs) 
-                api.storage.local.set({"logs_tmn" : ""});
+                localStorage["logs_tmn"] = "";
         });
 	  
     },

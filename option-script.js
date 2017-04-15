@@ -13,7 +13,7 @@ function loadHandlers() {
 	$("#apply-options").click( function() {	
 		tmn_options = {"options":saveOptions()};
 		api.runtime.sendMessage({'tmn':"TMNSaveOptions",'options':tmn_options.options});		
-		TMNSetOptionsMenu(tmn_options);	
+		//TMNSetOptionsMenu(tmn_options);	
 		}
 	);
 
@@ -58,6 +58,11 @@ function loadHandlers() {
 	$("#search-engine-list").on('click', 'button.smallbutton', function(event) {
 		var del_engine = event.target.id.split("_").pop();
 		api.runtime.sendMessage({'tmn':"TMNDelEngine",'engine':del_engine});
+	});
+
+	$("#trackmenot-opt-timeout").change(function() {
+		timeout = $("#trackmenot-opt-timeout").val();
+		setFrequencyMenu(timeout);
 	});
 
 
@@ -178,7 +183,7 @@ function saveOptions() {
     options.disableLogs = $("#trackmenot-opt-disable-logs").is(':checked'); 
     options.saveLogs = $("#trackmenot-opt-save-logs").is(':checked'); 
     options.timeout = $("#trackmenot-opt-timeout").val();
-    setFrequencyMenu(options.timeout);
+    //setFrequencyMenu(options.timeout);
 
     var engines = '';
     var list = $("#search-engine-list:checked");
@@ -222,8 +227,8 @@ function handleRequest(request, sender, sendResponse) {
 
 document.addEventListener('DOMContentLoaded', function () {
   TMNShowEngines(tmn._getTargetEngines());
-  TMNSetOptionsMenu();
   loadHandlers();
+  TMNSetOptionsMenu();
 });
 
 
