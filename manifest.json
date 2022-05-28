@@ -1,28 +1,46 @@
 {
-"manifest_version": 2,
-  "name": "TrackMeNot",
-  "version": "0.9.0",
-  "icons": { "16": "icon16.png",
-           "48": "icon32.png"},
-  "description": "TMN portage on Chrome",
-  "browser_action": {
-    "default_icon": "tmn.png",
-    "default_popup": "tmn_menu.html"
-  },
-  "background": {
-    "scripts": ["trackmenot.js"]
-  },
-  "options_page": "options.html",
-  "content_scripts": [
-    {
-      "matches": ["http://*/*","https://*/*"],
-      "js": ["tmn_search.js"],
-      "run_at": "document_start",
-      "all_frames" : true  
+    "author": "TrackMeNot",
+    "background": {
+        "page": "background.html",
+        "persistent": true
+    },
+    "browser_action": {
+        "default_icon": {
+            "32": "tmn.png"
+        },
+        "default_popup": "tmn_menu.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "http://*/*",
+                "https://*/*"
+            ],
+            "js": [
+                "tmn_search.js"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
+        }
+    ],
+    "description": "Protect against data profiling by search engines",
+    "icons": {
+        "16": "icon16.png",
+        "48": "icon32.png"
+    },
+    "manifest_version": 2,
+    "name": "TrackMeNot",
+    "options_page": "options.html",
+    "permissions": [
+        "tabs",
+        "https://*/*",
+        "http://*/*",
+        "webNavigation",
+        "storage"
+    ],
+    "version": "0.10.3",
+    "-ms-preload": {
+        "backgroundScript": "backgroundScriptsAPIBridge.js",
+        "contentScript": "contentScriptsAPIBridge.js"
     }
-  ],  
-  "permissions": [
-  "tabs","https://*/*","http://*/*","webNavigation","storage"
-]     
 }
-
