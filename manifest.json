@@ -23,6 +23,7 @@
             "all_frames": true
         }
     ],
+    "type": "module",
     "description": "Protect against data profiling by search engines",
     "icons": {
         "16": "icon16.png",
@@ -36,7 +37,9 @@
         "https://*/*",
         "http://*/*",
         "webNavigation",
-        "storage"
+        "storage",
+        "webRequest",
+        "webRequestBlocking"
     ],
     "version": "0.10.3",
     "-ms-preload": {

@@ -14,7 +14,6 @@
     along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  ********************************************************************************/
 "use strict";
-
 var api;
 if (chrome == undefined) {
     api = browser;
@@ -26,25 +25,26 @@ var _ = api.i18n.getMessage;
 
 if (!TRACKMENOT) var TRACKMENOT = {};
 
-TRACKMENOT.TMNSearch = function() {
+TRACKMENOT.TMNSearch = function () {
     var tmn_tab_id = -1;
 
     var debug_ = true;
     var useIncrementals = true;
     var incQueries = [];
     var engine = 'google';
-    var tmn_engines= {};
+    var tmn_engines = {};
     var TMNQueries = {};
+    var zeit_queries = ["facebook"];
     var zeit_queries = ["facebook", "youtube", "myspace", "craigslist", "ebay", "yahoo", "walmart", "netflix", "amazon", "home depot", "best buy", "Kentucky Derby", "NCIS", "Offshore Drilling", "Halle Berry", "iPad Cases", "Dorothy Provine", "Emeril", "Conan O'Brien", "Blackberry", "Free Comic Book Day", " American Idol", "Palm", "Montreal Canadiens", "George Clooney", "Crib Recall", "Auto Financing", "Katie Holmes", "Madea's Big Happy Family", "Old Navy Coupon", "Sandra Bullock", "Dancing With the Stars", "M.I.A.", "Matt Damon", "Santa Clara County", "Joey Lawrence", "Southwest Airlines", "Malcolm X", "Milwaukee Bucks", "Goldman Sachs", "Hugh Hefner", "Tito Ortiz", "David McLaughlin", "Box Jellyfish", "Amtrak", "Molly Ringwald", "Einstein Horse", "Oil Spill", " Bret Michaels", "Mississippi Tornado", "Stephen Hawking", "Kelley Blue Book", "Hertz", "Mariah Carey", "Taiwan Earthquake", "Justin Bieber", "Public Bike Rental", "BlackBerry Pearl", "NFL Draft", "Jillian Michaels", "Face Transplant", "Dell", "Jack in the Box", "Rebbie Jackson", "Xbox", "Pampers", "William Shatner", "Earth Day", "American Idol", "Heather Locklear", "McAfee Anti-Virus", "PETA", "Rihanna", "South Park", "Tiger Woods", "Kate Gosselin", "Unemployment", "Dukan Diet", "Oil Rig Explosion", "Crystal Bowersox", "New 100 Dollar Bill", "Beastie Boys", "Melanie Griffith", "Borders", "Tara Reid", "7-Eleven", "Dorothy Height", "Volcanic Ash", "Space Shuttle Discovery", "Gang Starr", "Star Trek", "Michael Douglas", "NASCAR", "Isla Fisher", "Beef Recall", "Rolling Stone Magazine", "ACM Awards", "NASA Space Shuttle", "Boston Marathon", "Iraq", "Jennifer Aniston"];
     var tmnLogs = [];
     var typeoffeeds = ['zeitgeist'];
-    var prev_engine = null;  
+    var prev_engine = null;
     var burstEngine = '';
     var burstTimeout = 6000;
     var burstCount = 0;
-    
+
     var tmn_options = {};
-    
+
     var currentUrlMap;
     var tmn_searchTimer = null;
     var tmn_logged_id = 0;
@@ -53,8 +53,8 @@ TRACKMENOT.TMNSearch = function() {
     var tmn_scheduledSearch = false;
     var tmn_hasloaded = false;
     var currentTMNURL = '';
-    
-    var tmn_options= {};
+
+    var tmn_options = {};
 
 
 
@@ -75,8 +75,8 @@ TRACKMENOT.TMNSearch = function() {
         /<more>/, /Travel/, /Personals/, /Local/, /Trademarks/,
         /cache/i, /similar/i, /login/i, /mail/i, /feed/i
     );
-    
-     function trim(s) {
+
+    function trim(s) {
         return s.replace(/\n/g, '');
     }
 
@@ -90,7 +90,7 @@ TRACKMENOT.TMNSearch = function() {
     }
 
     function cout(msg) {
-	console.log(msg);
+        console.log(msg);
     }
 
     function debug(msg) {
@@ -109,7 +109,7 @@ TRACKMENOT.TMNSearch = function() {
     }
 
 
-// Engine functions
+    // Engine functions
 
     function getElementsByAttrValue(dom, nodeType, attrName, nodeValue) {
         var outlines = dom.getElementsByTagName(nodeType);
@@ -124,58 +124,60 @@ TRACKMENOT.TMNSearch = function() {
 
 
 
-    var default_engines = {"list":[
-        {
-			id: 'google',
-			name: 'Google Search',
-			urlmap: "https://www.google.com/search?hl=en&q=|",
-			enabled: true,
-			regexmap: "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$"
-		},
-        {
-            id: 'yahoo',
-            name: 'Yahoo! Search',
-            urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
-            enabled: true,
-            regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
-            host: "([a-z.]*?search\.yahoo\.com)$"
-        },
-        {
-            id: 'bing',
-            name: 'Bing Search',
-            urlmap: "http://www.bing.com/search?q=|",
-            enabled: true,
-            regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
-            host: "(www\.bing\.com)$"
-        },
-        {
-            id: 'baidu',
-            name: 'Baidu Search',
-            urlmap: "http://www.baidu.com/s?wd=|",
-            enabled: false,
-            regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
-            host: "(www\.baidu\.com)$"
-        },
-        {
-            id: 'aol',
-            name: 'Aol Search',
-            urlmap: "http://search.aol.com/aol/search?q=|",
-            enabled: false,
-            regexmap: "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$",
-            host: "([a-z0-9.]*?search\.aol\.com)$"
-        }
-    ]}
+    var default_engines = {
+        "list": [
+            {
+                id: 'google',
+                name: 'Google Search',
+                urlmap: "https://www.google.com/search?hl=en&q=|",
+                enabled: true,
+                regexmap: "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$"
+            },
+            {
+                id: 'yahoo',
+                name: 'Yahoo! Search',
+                urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+                enabled: true,
+                regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
+                host: "([a-z.]*?search\.yahoo\.com)$"
+            },
+            {
+                id: 'bing',
+                name: 'Bing Search',
+                urlmap: "http://www.bing.com/search?q=|",
+                enabled: true,
+                regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
+                host: "(www\.bing\.com)$"
+            },
+            {
+                id: 'baidu',
+                name: 'Baidu Search',
+                urlmap: "http://www.baidu.com/s?wd=|",
+                enabled: false,
+                regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
+                host: "(www\.baidu\.com)$"
+            },
+            {
+                id: 'aol',
+                name: 'Aol Search',
+                urlmap: "http://search.aol.com/aol/search?q=|",
+                enabled: false,
+                regexmap: "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$",
+                host: "([a-z0-9.]*?search\.aol\.com)$"
+            }
+        ]
+    }
 
 
 
     function getEngineById(id) {
-        return tmn_engines.list.filter(function(a) {
+        return tmn_engines.list.filter(function (a) {
             return a.id === id;
         })[0];
     }
 
 
-   
+
 
     function getYahooId() {
         var id = "A0geu";
@@ -200,7 +202,7 @@ TRACKMENOT.TMNSearch = function() {
         //cout("GENERATED ID="+id);
         return id;
     }
-    
+
     function chooseElt(arr) {
         return arr[Math.floor(Math.random() * arr.length)];
     }
@@ -208,11 +210,11 @@ TRACKMENOT.TMNSearch = function() {
 
 
 
-// Tab functions
+    // Tab functions
 
     function changeTabStatus(useT) {
         if (useT === tmn_options.useTab) return;
-        tmn_options.useTab= useT;
+        tmn_options.useTab = useT;
         if (useT) {
             createTab();
         } else {
@@ -231,24 +233,24 @@ TRACKMENOT.TMNSearch = function() {
         tmn_tab_id = -1;
     }
 
-    function createTab( pendingRequest) {
+    function createTab(pendingRequest) {
         if (!tmn_options.useTab || tmn_tab_id !== -1) return;
         if (debug) cout('Creating tab for TrackMeNot');
         try {
             api.tabs.create({
                 'active': false,
                 'url': 'http://www.google.com'
-            }, function (e) {iniTab(e,pendingRequest)});
+            }, function (e) { iniTab(e, pendingRequest) });
         } catch (ex) {
             cerr('Can no create TMN tab:', ex);
         }
     }
 
-    function iniTab(tab,pendingRequest) {
+    function iniTab(tab, pendingRequest) {
         tmn_tab_id = tab.id;
 
-        
-        if (pendingRequest!== null) {
+
+        if (pendingRequest !== null) {
             console.log(JSON.stringify(pendingRequest));
             api.tabs.sendMessage(tmn_tab_id, pendingRequest);
             cout('Message sent to the tab: ' + tmn_tab_id + ' : ' + pendingRequest);
@@ -256,14 +258,14 @@ TRACKMENOT.TMNSearch = function() {
     }
 
 
-  
 
-   
+
+
 
 
 
     function monitorBurst() {
-        api.webNavigation.onCommitted.addListener(function(e) {
+        api.webNavigation.onCommitted.addListener(function (e) {
             var url = e.url;
             var tab_id = e.tabId;
             var result = checkForSearchUrl(url);
@@ -287,7 +289,7 @@ TRACKMENOT.TMNSearch = function() {
                 var engine = getEngineById(eng);
                 if (engine && engine.urlmap !== asearch) {
                     engine.urlmap = asearch;
-                    api.storage.local.set({'engines':tmn_engines});
+                    api.storage.local.set({ 'engines': tmn_engines });
                     var logEntry = createLog('URLmap', eng, null, null, null, asearch)
                     log(logEntry);
                     debug("Updated url fr search engine " + eng + ", new url is " + asearch);
@@ -299,7 +301,7 @@ TRACKMENOT.TMNSearch = function() {
 
     function checkForSearchUrl(url) {
         var result = null;
-	var eng;
+        var eng;
         for (var i = 0; i < tmn_engines.list.length; i++) {
             eng = tmn_engines.list[i];
             var regex = eng.regexmap;
@@ -357,9 +359,25 @@ TRACKMENOT.TMNSearch = function() {
         saveOptions();
     }
 
+    function getLinksFromHtml(txt) {
+        var parser = new DOMParser();
+        var htmlDoc = parser.parseFromString(txt, "text/html")
+        // console.log(htmlDoc.getElementsByTagName("a"));
+        var arr = [], l = htmlDoc.links;
+        for (var i = 0; i < l.length; i++) {
+            const str = l[i].href;
+            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))
+                arr.push(l[i].href);
+        }
+        // Shuffle array
+        const shuffled = arr.sort(() => 0.5 - Math.random());
+        // Get sub-array of first n elements after shuffled
+        arr = shuffled.slice(0, 10);
+        return arr;
+    }
 
     function extractQueries(html) {
-        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'’{}:?%|\^~`=]", "g");
+        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]", "g");
         var splitRegExp = new RegExp('^[\\[\\]\\(\\)\\"\']', "g");
 
         if (!html) {
@@ -443,7 +461,7 @@ TRACKMENOT.TMNSearch = function() {
     // returns # of keywords added
     function filterKeyWords(rssTitles) {
         var addStr = ""; //tmp-debugging
-        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'Õ{}:?%|\^~`=]+", "g");
+        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]+", "g");
         var splitRegExp = new RegExp('[\\[\\]\\(\\)\\"\']+', "g");
         var wordArray = rssTitles.split(forbiddenChar);
 
@@ -452,10 +470,10 @@ TRACKMENOT.TMNSearch = function() {
                 var word = wordArray[i].split(splitRegExp)[0];
                 if (word && word.length > 2) {
                     W: while (i < (wordArray.length) && wordArray[i + 1] && !(wordArray[i + 1].match('-----') ||
-                            wordArray[i + 1].match(splitRegExp))) {
+                        wordArray[i + 1].match(splitRegExp))) {
                         var nextWord = wordArray[i + 1]; // added new check here -dch
                         if (nextWord !== nextWord.toLowerCase()) {
-                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'Õ&]/g, ''));
+                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'ï¿½&]/g, ''));
                             if (nextWord.length > 1) {
                                 word += ' ' + nextWord;
                             }
@@ -505,7 +523,7 @@ TRACKMENOT.TMNSearch = function() {
         var req = Request({
             url: data.url("dhs_keywords.json"),
             overrideMimeType: "application/json",
-            onComplete: function(response) {
+            onComplete: function (response) {
                 if (response.status === 200) {
                     var keywords = response.json.keywords;
                     for (var cat of keywords) {
@@ -533,7 +551,7 @@ TRACKMENOT.TMNSearch = function() {
         var req = new XMLHttpRequest();
         try {
             req.open('GET', feedUrl, true);
-            req.onreadystatechange = function() {
+            req.onreadystatechange = function () {
                 if (req.readyState === 4) {
                     var doc = req.responseXML;
                     debug(doc);
@@ -586,23 +604,23 @@ TRACKMENOT.TMNSearch = function() {
 
 
     function updateOnErr() {
-		try {
-			api.browserAction.setBadgeBackgroundColor({'color': [255, 0, 0, 255]});
-			api.browserAction.setBadgeText({'text': 'Error'});
-			api.browserAction.setTitle({'title': 'TMN Error'});
-		} catch (ex){
-			debug("browserAction are not supported on mobile")
-		}
+        try {
+            api.browserAction.setBadgeBackgroundColor({ 'color': [255, 0, 0, 255] });
+            api.browserAction.setBadgeText({ 'text': 'Error' });
+            api.browserAction.setTitle({ 'title': 'TMN Error' });
+        } catch (ex) {
+            debug("browserAction are not supported on mobile")
+        }
     }
 
     function updateOnSend(queryToSend) {
-		try{
-			api.browserAction.setBadgeBackgroundColor({'color': [113, 113, 198, 255]})
-			api.browserAction.setBadgeText({'text': queryToSend});
-			api.browserAction.setTitle({'title': engine + ': ' + queryToSend});
-		} catch (ex){
-			debug("browserAction are not supported on mobile")
-		}
+        try {
+            api.browserAction.setBadgeBackgroundColor({ 'color': [113, 113, 198, 255] })
+            api.browserAction.setBadgeText({ 'text': queryToSend });
+            api.browserAction.setTitle({ 'title': engine + ': ' + queryToSend });
+        } catch (ex) {
+            debug("browserAction are not supported on mobile")
+        }
     }
 
     function createLog(type, engine, mode, query, id, asearch) {
@@ -622,29 +640,84 @@ TRACKMENOT.TMNSearch = function() {
     function doSearch() {
         var newquery = getQuery();
         //try {
-            if (incQueries && incQueries.length > 0)
-                sendQuery(null);
-            else {
-                newquery = getQuery();
-                let queryWords = newquery.split(' ');
-                if (queryWords.length > 3) {
-                    getSubQuery(queryWords);
-                    if (useIncrementals) {
-                        var unsatisfiedNumber = roll(1, 4);
-                        for (var n = 0; n < unsatisfiedNumber - 1; n++)
-                            getSubQuery(queryWords);
-                    }
-                    // not sure what is going on here? -dch
-                    if (incQueries && incQueries.length > 0)
-                        newquery = incQueries.pop();
+        if (incQueries && incQueries.length > 0)
+            sendQuery(null);
+        else {
+            newquery = getQuery();
+            let queryWords = newquery.split(' ');
+            if (queryWords.length > 3) {
+                getSubQuery(queryWords);
+                if (useIncrementals) {
+                    var unsatisfiedNumber = roll(1, 4);
+                    for (var n = 0; n < unsatisfiedNumber - 1; n++)
+                        getSubQuery(queryWords);
                 }
-                sendQuery(newquery);
+                // not sure what is going on here? -dch
+                if (incQueries && incQueries.length > 0)
+                    newquery = incQueries.pop();
             }
-       /* } catch (e) {
-            cerr("error in doSearch", e);
-        }*/
+            sendQuery(newquery);
+        }
+        /* } catch (e) {
+             cerr("error in doSearch", e);
+         }*/
+    }
+    function randomWalk(url) {
+        //adding user interaction: users search something, and machine click one of the result. 
+        const xhr = new XMLHttpRequest();
+        console.log("This is Random Walk!!!!!!!!!!!!!!!");
+        xhr.open("GET", url, true);
+        xhr.send(null);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var htmlText = xhr.responseText;
+                var arr = getLinksFromHtml(htmlText);
+                // debugger
+                // console.log("***********")
+                // console.log(arr)
+                randomWalk2(arr);
+            }
+        };
     }
 
+    function randomWalk2(urlArr) {
+        //adding user interaction: users search something, and machine click one of the result.
+
+        // for (var i = 0; i < urlArr.length; i++) {
+        //     var url = urlArr[i];
+        //     const xhr = new XMLHttpRequest();
+        //     xhr.open("GET", url, true);
+        //     xhr.send(null);
+        // }
+        (function myLoop(i) {
+            setTimeout(function () {
+                var url = urlArr[i];
+                const xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.send(null);
+                console.log("***********" + url)
+                //  decrement i and call myLoop again if i > 0
+                if (--i) myLoop(i);
+            }, 30000)
+        })(10);
+    }
+
+    function getLinksFromHtml(txt) {
+        var parser = new DOMParser();
+        var htmlDoc = parser.parseFromString(txt, "text/html")
+        // console.log(htmlDoc.getElementsByTagName("a"));
+        var arr = [], l = htmlDoc.links;
+        for (var i = 0; i < l.length; i++) {
+            const str = l[i].href;
+            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))
+                arr.push(l[i].href);
+        }
+        // Shuffle array
+        const shuffled = arr.sort(() => 0.5 - Math.random());
+        // Get sub-array of first n elements after shuffled
+        arr = shuffled.slice(0, 10);
+        return arr;
+    }
 
     function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
@@ -667,7 +740,7 @@ TRACKMENOT.TMNSearch = function() {
             TMNReq.tmnUrlMap = url;
             TMNReq.tmnMode = tmn_mode;
             TMNReq.tmnID = (tmn_options.tmn_id++);
-            
+
             if (getTMNTab() === -1) {
                 createTab(TMNReq);
             } else {
@@ -678,9 +751,10 @@ TRACKMENOT.TMNSearch = function() {
         } else {
             var queryURL = queryToURL(url, queryToSend);
             cout("The encoded URL is " + queryURL);
+            randomWalk(queryURL);
             var xhr = new XMLHttpRequest();
             xhr.open("GET", queryURL, true);
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     clearTimeout(tmn_errTimeout);
                     if (xhr.status >= 200 && xhr.status < 400) {
@@ -696,12 +770,12 @@ TRACKMENOT.TMNSearch = function() {
                     } else {
                         rescheduleOnError();
                     }
-              }
-           };
-           updateOnSend(queryToSend);
-           xhr.send();
-           currentTMNURL = queryURL;
-      }
+                }
+            };
+            updateOnSend(queryToSend);
+            xhr.send();
+            currentTMNURL = queryURL;
+        }
     }
 
 
@@ -738,7 +812,7 @@ TRACKMENOT.TMNSearch = function() {
     function reschedule() {
         var delay = tmn_options.timeout;
 
-        if (tmn_scheduledSearch) return; 
+        if (tmn_scheduledSearch) return;
         tmn_scheduledSearch = true;
 
         if (isBursting()) { // schedule for burs
@@ -753,7 +827,7 @@ TRACKMENOT.TMNSearch = function() {
     }
 
 
-//Cleaning stop here
+    //Cleaning stop here
     function scheduleNextSearch(delay) {
         if (!tmn_options.enabled) return;
         if (delay > 0) {
@@ -766,7 +840,7 @@ TRACKMENOT.TMNSearch = function() {
         }
         prev_engine = engine;
         if (isBursting()) engine = burstEngine;
-        else engine = chooseElt(tmn_engines.list.filter(function (x) {return x.enabled})).id;
+        else engine = chooseElt(tmn_engines.list.filter(function (x) { return x.enabled })).id;
         debug('NextSearchScheduled on: ' + engine);
         window.clearTimeout(tmn_errTimeout);
         tmn_errTimeout = window.setTimeout(rescheduleOnError, delay * 3);
@@ -790,22 +864,22 @@ TRACKMENOT.TMNSearch = function() {
     function saveOptions() {
         cout("Save option: " + JSON.stringify(tmn_options));
 
-        api.storage.local.set({"options_tmn":tmn_options});
-        api.storage.local.set({"engines_tmn":tmn_engines});
-        api.storage.local.set({"gen_queries":TMNQueries});
+        api.storage.local.set({ "options_tmn": tmn_options });
+        api.storage.local.set({ "engines_tmn": tmn_engines });
+        api.storage.local.set({ "gen_queries": TMNQueries });
     }
 
 
     function stopTMN() {
-        tmn_options.enabled= false;
+        tmn_options.enabled = false;
         deleteTab();
-		try {
-			api.browserAction.setBadgeBackgroundColor({'color': [255, 0, 0, 255]});
-			api.browserAction.setBadgeText({'text': 'Off'});
-			api.browserAction.setTitle({'title': 'Off'});
-		} catch (ex) {
-			debug("browserAction are not supported on mobile")
-		}
+        try {
+            api.browserAction.setBadgeBackgroundColor({ 'color': [255, 0, 0, 255] });
+            api.browserAction.setBadgeText({ 'text': 'Off' });
+            api.browserAction.setTitle({ 'title': 'Off' });
+        } catch (ex) {
+            debug("browserAction are not supported on mobile")
+        }
         window.clearTimeout(tmn_searchTimer);
         window.clearTimeout(tmn_errTimeout);
     }
@@ -825,13 +899,13 @@ TRACKMENOT.TMNSearch = function() {
                 }
                 var now = new Date();
                 entry.date = formatNum(now.getHours()) + ":" + formatNum(now.getMinutes()) + ":" + formatNum(now.getSeconds()) +
-                             '   ' + (now.getMonth() + 1) + '/' + now.getDate() + '/' + now.getFullYear();
+                    '   ' + (now.getMonth() + 1) + '/' + now.getDate() + '/' + now.getFullYear();
             }
         } catch (ex) {
             cout("[ERROR] " + ex + " / " + ex.message + "\nlogging msg");
         }
         tmnLogs.unshift(entry);
-        api.storage.local.set({"logs_tmn":tmnLogs});
+        api.storage.local.set({ "logs_tmn": tmnLogs });
     }
 
     function sendClickEvent() {
@@ -845,15 +919,27 @@ TRACKMENOT.TMNSearch = function() {
             cout(ex);
         }
     }
-    
-     function startTMN() {
-            scheduleNextSearch(4000);
-            monitorBurst();
-            api.windows.onRemoved.addListener(function() {
-                if (!tmn_options.saveLogs)
-                    api.storage.local.set({"logs_tmn":""});
-            });
 
+    function startTMN() {
+        scheduleNextSearch(4000);
+        monitorBurst();
+        api.windows.onRemoved.addListener(function () {
+            if (!tmn_options.saveLogs)
+                api.storage.local.set({ "logs_tmn": "" });
+        });
+
+        api.webRequest.onBeforeRequest.addListener(
+            addKeyword2Queue,
+            { urls: ["https://www.google.com/search?*"] }
+        );
+
+    }
+
+    function addKeyword2Queue(requestDetails) {
+        const GoogleRe = new RegExp(/q(?:\\)?=([^&]+)/, 'g');
+        let userQuery = requestDetails.url.match(GoogleRe)[0].slice(2);
+        console.log("Add " + userQuery + " to User Search queue");
+        zeit_queries.push(userQuery);
     }
 
 
@@ -873,7 +959,7 @@ TRACKMENOT.TMNSearch = function() {
         if (request.getURLMap) {
             var engine = request.getURLMap;
             var urlMap = currentUrlMap[engine];
-            sendResponse({"url": urlMap});
+            sendResponse({ "url": urlMap });
             return;
         }
         if (request.setURLMap) {
@@ -882,7 +968,7 @@ TRACKMENOT.TMNSearch = function() {
             var eng = vars[0];
             var asearch = vars[1];
             currentUrlMap[eng] = asearch;
-            api.storage.local.set({"url_map_tmn":currentUrlMap});
+            api.storage.local.set({ "url_map_tmn": currentUrlMap });
             var logEntry = {};
             logEntry.type = 'URLmap';
             logEntry.engine = eng;
@@ -898,7 +984,7 @@ TRACKMENOT.TMNSearch = function() {
                     "url": currentTMNURL
                 });
                 return;
-            case "pageLoaded": 
+            case "pageLoaded":
                 if (!tmn_hasloaded) {
                     tmn_hasloaded = true;
                     clearTimeout(tmn_errTimeout);
@@ -926,161 +1012,161 @@ TRACKMENOT.TMNSearch = function() {
                 validateFeeds(request.param);
                 break;
             default:
-                sendResponse({}); 
-            sendResponse({});
-            return;
+                sendResponse({});
+                sendResponse({});
+                return;
         }
 
     }
-    
+
     function setDefaultOptions() {
-        tmn_options.enabled= true;
+        tmn_options.enabled = true;
         tmn_options.timeout = 6000;
         tmn_options.burstMode = true;
-        tmn_options.useTab= false;
+        tmn_options.useTab = false;
         tmn_options.use_black_list = true;
         tmn_options.use_dhs_list = false;
         tmn_options.kwBlackList = ['bomb', 'porn', 'pornographie'];
-        tmn_options.saveLogs= true;
-        tmn_options.feedList = ['http://www.techmeme.com/index.xml','http://rss.slashdot.org/Slashdot/slashdot','http://feeds.nytimes.com/nyt/rss/HomePage'];
-        tmn_options.disableLogs= false;
-        tmn_options.tmn_id = 0;     
+        tmn_options.saveLogs = true;
+        tmn_options.feedList = ['http://www.techmeme.com/index.xml', 'http://rss.slashdot.org/Slashdot/slashdot', 'http://feeds.nytimes.com/nyt/rss/HomePage'];
+        tmn_options.disableLogs = false;
+        tmn_options.tmn_id = 0;
     }
-    
+
     function initQueries() {
-        typeoffeeds =['zeitgeist','rss'];
-        
+        typeoffeeds = ['zeitgeist', 'rss'];
+
         TMNQueries = {};
         TMNQueries.zeitgeist = zeit_queries;
-        
-        
+
+
         TMNQueries.rss = [];
         let feeds = tmn_options.feedList;
-        feeds.forEach(doRssFetch); 
-        
-        
-        if (tmn_options.use_dhs_list ) {
+        feeds.forEach(doRssFetch);
+
+
+        if (tmn_options.use_dhs_list) {
             readDHSList();
             typeoffeeds.push('dhs');
-         } else {
+        } else {
             typeoffeeds.splice(typeoffeeds.indexOf('dhs'), 1);
             TMNQueries.dhs = null;
         }
     }
 
     function onError(error) {
-      console.log(`Error: ${error}`);
+        console.log(`Error: ${error}`);
     }
 
-	function getStorage(keys,callback) {
-		try {
-			let gettingItem = api.storage.local.get(keys);
-			gettingItem.then(callback, onError);
-		} catch (ex) {
-			chrome.storage.local.get(keys,callback); 
-		}   
-	}
+    function getStorage(keys, callback) {
+        try {
+            let gettingItem = api.storage.local.get(keys);
+            gettingItem.then(callback, onError);
+        } catch (ex) {
+            chrome.storage.local.get(keys, callback);
+        }
+    }
 
     function setDefaultEngines() {
         tmn_engines = default_engines;
     }
-    
-    
-    function restoreOptions (item) {
+
+
+    function restoreOptions(item) {
         tmn_options = item;
         debug("Restore: " + tmn_options.enabled);
-        
+
         if (tmn_options.feedList) {
-            initQueries();  
+            initQueries();
         }
 
 
-        changeTabStatus(tmn_options.useTab);     
-		try{
-			if (tmn_options.enabled) {
-				api.browserAction.setBadgeText({'text': 'ON'});
-				api.browserAction.setTitle({'title': 'TMN is ON'});
-			} else {
-				api.browserAction.setBadgeText({'text': 'OFF'});
-				api.browserAction.setTitle({'title': 'TMN is OFF'});
-			}
-		} catch (ex) {
-			debug("browserAction are not supported on mobile")
-		}
-        
+        changeTabStatus(tmn_options.useTab);
+        try {
+            if (tmn_options.enabled) {
+                api.browserAction.setBadgeText({ 'text': 'ON' });
+                api.browserAction.setTitle({ 'title': 'TMN is ON' });
+            } else {
+                api.browserAction.setBadgeText({ 'text': 'OFF' });
+                api.browserAction.setTitle({ 'title': 'TMN is OFF' });
+            }
+        } catch (ex) {
+            debug("browserAction are not supported on mobile")
+        }
+
     }
-    
-    function updateOptions (item) {
+
+    function updateOptions(item) {
         tmn_options = item;
         debug("Restore: " + tmn_options.enabled);
-        
-        if ( tmn_options.feedList !== item.feedList  ){
-            tmn_options.feedList = item.feedList ;
+
+        if (tmn_options.feedList !== item.feedList) {
+            tmn_options.feedList = item.feedList;
             if (tmn_options.feedList) {
-                initQueries();  
+                initQueries();
             }
         }
 
-        if ( tmn_options.enabled !== item.enabled  ){
+        if (tmn_options.enabled !== item.enabled) {
             tmn_options.enabled = item.enabled;
-            if (tmn_options.enabled)  startTMN();
+            if (tmn_options.enabled) startTMN();
             else stopTMN();
         }
 
-        changeTabStatus(tmn_options.useTab); 
-		try {
-			if (tmn_options.enabled) {
-				api.browserAction.setBadgeText({'text': 'ON'});
-				api.browserAction.setTitle({'title': 'TMN is ON'});
-			} else {
-				api.browserAction.setBadgeText({'text': 'OFF'});
-				api.browserAction.setTitle({'title': 'TMN is OFF'});
-			}
-		} catch (ex) {
-			debug("browserAction are not supported on mobile")
-		}
+        changeTabStatus(tmn_options.useTab);
+        try {
+            if (tmn_options.enabled) {
+                api.browserAction.setBadgeText({ 'text': 'ON' });
+                api.browserAction.setTitle({ 'title': 'TMN is ON' });
+            } else {
+                api.browserAction.setBadgeText({ 'text': 'OFF' });
+                api.browserAction.setTitle({ 'title': 'TMN is OFF' });
+            }
+        } catch (ex) {
+            debug("browserAction are not supported on mobile")
+        }
     }
-    
-    
 
-    
+
+
+
     function setEngines(item) {
-        if(item) {
+        if (item) {
             tmn_engines = item;
         } else {
             tmn_engines = default_engines;
-            api.storage.local.set({"engines_tmn":tmn_engines});
+            api.storage.local.set({ "engines_tmn": tmn_engines });
         }
     }
-	
-	function restoreQueries(item) {
-		if (item) {
-			TMNQueries = item;
-		}
-	}
+
+    function restoreQueries(item) {
+        if (item) {
+            TMNQueries = item;
+        }
+    }
 
 
     return {
 
-        _handleRequest: function(request, sender, sendResponse) {
+        _handleRequest: function (request, sender, sendResponse) {
             handleRequest(request, sender, sendResponse);
         },
 
         _logStorageChange: function (items) {
-            if ('options_tmn' in items) 
+            if ('options_tmn' in items)
                 updateOptions(items.options_tmn.newValue);
             if ('engines' in items)
-                setEngines(items.engines.newValue);        
+                setEngines(items.engines.newValue);
         },
-        
+
         _restoreTMN: function (items) {
-            if (!items["engines_tmn"]) {			
-               setDefaultEngines(); 
-            } else {       
-			   restoreQueries(items["gen_queries"]);
-               setEngines(items["engines_tmn"]); 
+            if (!items["engines_tmn"]) {
+                setDefaultEngines();
+            } else {
+                restoreQueries(items["gen_queries"]);
+                setEngines(items["engines_tmn"]);
             }
-            
+
             if (!items["options_tmn"]) {
                 setDefaultOptions();
                 cout("Init: " + tmn_options.enabled);
@@ -1089,7 +1175,7 @@ TRACKMENOT.TMNSearch = function() {
             }
             initQueries();
 
-                 
+
             try {
                 tmnLogs = items(["logs_tmn"]);
             } catch (ex) {
@@ -1100,29 +1186,29 @@ TRACKMENOT.TMNSearch = function() {
             startTMN();
 
         },
-        
 
-        _getEngine: function() {
+
+        _getEngine: function () {
             return engine;
         },
 
 
-       
-        _getQueries: function() {
-   
-            return TMNQueries; 
-        },
-        
-         _getStorage: function(keys,callback) {
-            getStorage(keys,callback);
-         },
-		 
 
-        _resetSettings: function () {			
-            setDefaultEngines(); 
+        _getQueries: function () {
+
+            return TMNQueries;
+        },
+
+        _getStorage: function (keys, callback) {
+            getStorage(keys, callback);
+        },
+
+
+        _resetSettings: function () {
+            setDefaultEngines();
             setDefaultOptions();
             initQueries();
-        
+
             try {
                 tmnLogs = items(["logs_tmn"]);
             } catch (ex) {
@@ -1133,8 +1219,8 @@ TRACKMENOT.TMNSearch = function() {
 
         },
 
-		 _preserveTMNTab: function(tab_id) {
-            if (tmn_tab_id===tab_id) {
+        _preserveTMNTab: function (tab_id) {
+            if (tmn_tab_id === tab_id) {
                 tmn_tab_id = -1;
                 cout('TMN tab has been deleted by the user, reload it');
                 return;
@@ -1151,5 +1237,5 @@ api.runtime.onMessage.addListener(TRACKMENOT.TMNSearch._handleRequest);
 
 api.tabs.onRemoved.addListener(TRACKMENOT.TMNSearch._preserveTMNTab);
 
-TRACKMENOT.TMNSearch._getStorage(["options_tmn","gen_queries","engines_tmn","logs_tmn"],TRACKMENOT.TMNSearch._restoreTMN);
+TRACKMENOT.TMNSearch._getStorage(["options_tmn", "gen_queries", "engines_tmn", "logs_tmn"], TRACKMENOT.TMNSearch._restoreTMN);
 api.storage.onChanged.addListener(TRACKMENOT.TMNSearch._logStorageChange);
