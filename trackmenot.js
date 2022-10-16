@@ -169,6 +169,7 @@ TRACKMENOT.TMNSearch = function() {
 
 
     function getEngineById(id) {
+        console.log("getEngineById(id) with tmn_engines = " + tmn_engines);
         return tmn_engines.list.filter(function(a) {
             return a.id === id;
         })[0];
@@ -660,6 +661,7 @@ TRACKMENOT.TMNSearch = function() {
         if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase();
         if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space ;
         tmn_hasloaded = false;
+        console.log("JSON.stringify(getEngineById(engine)) with tmnEngine = " + JSON.stringify(getEngineById(engine)));
         if (tmn_options.useTab) {
             var TMNReq = {};
             TMNReq.tmnQuery = queryToSend;

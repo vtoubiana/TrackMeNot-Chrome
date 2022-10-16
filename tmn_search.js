@@ -324,9 +324,7 @@ TRACKMENOT.TMNInjected = function() {
 
     function clickButton(searchButton) {
         // var button = get_button(engine.id, document);
-        console.log("clicking button");
         searchButton.click();
-        console.log("button clicked");
         // clickElt(button);
         console.log("send page loaded");
         sendPageLoaded();
@@ -443,13 +441,13 @@ TRACKMENOT.TMNInjected = function() {
            // }
         } else {
             updateStatus(searchBox.value);
-            clickButton(searchButton);
-            // nextPress = roll(10, 30);
+            nextPress = roll(10, 30);
+            window.setTimeout(clickButton, nextPress, searchButton);
             // if (Math.random() < 0.5)
             //     window.setTimeout(clickButton, nextPress);
             // else
             //     window.setTimeout(pressEnter, nextPress, searchBox);
-            // window.setTimeout( sendCurrentURL, nextpress+1)
+            window.setTimeout( sendCurrentURL, nextpress+1)
         }
     }
 
@@ -497,11 +495,9 @@ TRACKMENOT.TMNInjected = function() {
             }
 
         } else {
-            var searchBox = get_box("google");
-            var searchButton = get_button("google");
+            var searchBox = get_box(engine.id);
+            var searchButton = get_button(engine.id);
             // if (searchBox && searchButton && engine !== 'aol') {
-            console.log("The searchbox has been found " + searchBox);
-            console.log("The searchButton has been found " + searchButton);
             searchBox.value = getCommonWords(searchBox.value, queryToSend).join(' ');
             searchBox.selectionStart = 0;
             searchBox.selectionEnd = 0;
@@ -594,9 +590,10 @@ TRACKMENOT.TMNInjected = function() {
                     console.log("Duplicate queries ignored");
                     return;
                 }*/
-                console.log("Received: " + request.tmnQuery + " on engine: " + request.tmnEngine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
-                var tmn_query = request.tmnQuery;
                 var engine = JSON.parse(request.tmnEngine);
+                console.log("Received: " + request.tmnQuery + " on engine: " + engine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
+                var tmn_query = request.tmnQuery;
+                
                 var tmn_mode = request.tmnMode;
                 tmn_id = request.tmnID;
                 var tmn_URLmap = request.tmnUrlMap;
