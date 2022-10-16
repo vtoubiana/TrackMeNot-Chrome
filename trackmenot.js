@@ -132,38 +132,38 @@ TRACKMENOT.TMNSearch = function() {
 			enabled: true,
 			regexmap: "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$"
 		},
-        {
-            id: 'yahoo',
-            name: 'Yahoo! Search',
-            urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
-            enabled: true,
-            regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
-            host: "([a-z.]*?search\.yahoo\.com)$"
-        },
-        {
-            id: 'bing',
-            name: 'Bing Search',
-            urlmap: "http://www.bing.com/search?q=|",
-            enabled: true,
-            regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
-            host: "(www\.bing\.com)$"
-        },
-        {
-            id: 'baidu',
-            name: 'Baidu Search',
-            urlmap: "http://www.baidu.com/s?wd=|",
-            enabled: false,
-            regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
-            host: "(www\.baidu\.com)$"
-        },
-        {
-            id: 'aol',
-            name: 'Aol Search',
-            urlmap: "http://search.aol.com/aol/search?q=|",
-            enabled: false,
-            regexmap: "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$",
-            host: "([a-z0-9.]*?search\.aol\.com)$"
-        }
+        // {
+        //     id: 'yahoo',
+        //     name: 'Yahoo! Search',
+        //     urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+        //     enabled: true,
+        //     regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
+        //     host: "([a-z.]*?search\.yahoo\.com)$"
+        // },
+        // {
+        //     id: 'bing',
+        //     name: 'Bing Search',
+        //     urlmap: "http://www.bing.com/search?q=|",
+        //     enabled: true,
+        //     regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
+        //     host: "(www\.bing\.com)$"
+        // },
+        // {
+        //     id: 'baidu',
+        //     name: 'Baidu Search',
+        //     urlmap: "http://www.baidu.com/s?wd=|",
+        //     enabled: false,
+        //     regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
+        //     host: "(www\.baidu\.com)$"
+        // },
+        // {
+        //     id: 'aol',
+        //     name: 'Aol Search',
+        //     urlmap: "http://search.aol.com/aol/search?q=|",
+        //     enabled: false,
+        //     regexmap: "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$",
+        //     host: "([a-z0-9.]*?search\.aol\.com)$"
+        // }
     ]}
 
 
@@ -359,7 +359,7 @@ TRACKMENOT.TMNSearch = function() {
 
 
     function extractQueries(html) {
-        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'’{}:?%|\^~`=]", "g");
+        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]", "g");
         var splitRegExp = new RegExp('^[\\[\\]\\(\\)\\"\']', "g");
 
         if (!html) {
@@ -443,7 +443,7 @@ TRACKMENOT.TMNSearch = function() {
     // returns # of keywords added
     function filterKeyWords(rssTitles) {
         var addStr = ""; //tmp-debugging
-        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'Õ{}:?%|\^~`=]+", "g");
+        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]+", "g");
         var splitRegExp = new RegExp('[\\[\\]\\(\\)\\"\']+', "g");
         var wordArray = rssTitles.split(forbiddenChar);
 
@@ -455,7 +455,7 @@ TRACKMENOT.TMNSearch = function() {
                             wordArray[i + 1].match(splitRegExp))) {
                         var nextWord = wordArray[i + 1]; // added new check here -dch
                         if (nextWord !== nextWord.toLowerCase()) {
-                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'Õ&]/g, ''));
+                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'ï¿½&]/g, ''));
                             if (nextWord.length > 1) {
                                 word += ' ' + nextWord;
                             }
