@@ -31,6 +31,7 @@ TRACKMENOT.TMNInjected = function() {
     var tmn_id = 0;
     var tmnCurrentURL = '';
     var engine = '';
+    var last_engine = '';
     //    var allEvents = ['blur','change','click','dblclick','DOMMouseScroll','focus','keydown','keypress','keyup','load','mousedown','mousemove','mouseout','mouseover','mouseup','select'];
 
 
@@ -181,6 +182,12 @@ TRACKMENOT.TMNInjected = function() {
         }
     };
 
+    var engine2homepage = {
+        'google': 'https://www.google.com/', 
+        'yahoo': 'https://www.yahoo.com/', 
+        'bing': 'https://www.bing.com/', 
+        'baidu': 'https://www.baidu.com/'
+    }
 
     var engines_regex = [
         {
@@ -189,32 +196,24 @@ TRACKMENOT.TMNInjected = function() {
             "host": "(www\.google\.(co\.|com\.)?[a-z]{2,3})$",
             'regexmap': "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$"
         },
-        // {
-        //     'id': 'yahoo',
-        //     'name': 'Yahoo! Search',
-        //     "host": "([a-z.]*?search\.yahoo\.com)$",
-        //     'regexmap': "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$"
-        // },
-        // {
-        //     'id': 'bing',
-        //     'name': 'Bing Search',
-        //     "host": "(www\.bing\.com)$",
-        //     'regexmap': "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$"
-
-        // },
-        // {
-        //     'id': 'baidu',
-        //     'name': 'Baidu Search',
-        //     "host": "(www\.baidu\.com)$",
-        //     'regexmap': "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$"
-
-        // },
-        // {
-        //     'id': 'aol',
-        //     'name': 'Aol Search',
-        //     "host": "([a-z0-9.]*?search\.aol\.com)$",
-        //     'regexmap': "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$"
-        // }
+        {
+            'id': 'yahoo',
+            'name': 'Yahoo! Search',
+            "host": "([a-z.]*?search\.yahoo\.com)$",
+            'regexmap': "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$"
+        },
+        {
+            'id': 'bing',
+            'name': 'Bing Search',
+            "host": "(www\.bing\.com)$",
+            'regexmap': "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$"
+        },
+        {
+            'id': 'baidu',
+            'name': 'Baidu Search',
+            "host": "(www\.baidu\.com)$",
+            'regexmap': "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$"
+        }
     ];
     function roll(min, max) {
         return Math.floor(Math.random() * (max + 1)) + min;
@@ -465,6 +464,7 @@ TRACKMENOT.TMNInjected = function() {
 
 
     function sendQuery(engine, queryToSend, tmn_mode, url) {
+        console.log("[tmn_search.js] sendQuery");
         var host;
         try {
             host = window.location.host;
@@ -497,28 +497,30 @@ TRACKMENOT.TMNInjected = function() {
         } else {
             var searchBox = get_box(engine.id);
             var searchButton = get_button(engine.id);
-            // if (searchBox && searchButton && engine !== 'aol') {
-            searchBox.value = getCommonWords(searchBox.value, queryToSend).join(' ');
-            searchBox.selectionStart = 0;
-            searchBox.selectionEnd = 0;
-            var chara = new Array();
-            typeQuery(queryToSend, 0, searchBox, chara, false, searchButton);
-            return null;
-            // } else {
-            //     tmnCurrentURL = encodedUrl;
-            //     console.log("The searchbox can not be found ");
-            //     try {
-            //         window.location.href = encodedUrl;
-            //         return encodedUrl;
-            //     } catch (ex) {
-            //         console.log("Caught exception: " + ex);
-            //         api.runtime.sendMessage({
-            //             "url": encodedUrl
-            //         });
-            //         return null;
-            //     }
+            console.log("searchBox: " + JSON.stringify(searchBox));
+            console.log("get_button: " + JSON.stringify(get_button));
+            if (searchBox && searchButton && engine !== 'aol') {
+                searchBox.value = getCommonWords(searchBox.value, queryToSend).join(' ');
+                searchBox.selectionStart = 0;
+                searchBox.selectionEnd = 0;
+                var chara = new Array();
+                typeQuery(queryToSend, 0, searchBox, chara, false, searchButton);
+                return null;
+            } else {
+                tmnCurrentURL = encodedUrl;
+                console.log("The searchbox can not be found ");
+                try {
+                    window.location.href = encodedUrl;
+                    return encodedUrl;
+                } catch (ex) {
+                    console.log("Caught exception: " + ex);
+                    api.runtime.sendMessage({
+                        "url": encodedUrl
+                    });
+                    return null;
+                }
 
-            // }
+            }
         }
     }
 
@@ -529,7 +531,7 @@ TRACKMENOT.TMNInjected = function() {
         for (var i = 0; i < engines_regex.length; i++) {
             var eng = engines_regex[i];
             var regex = eng.host;
-            console.log("regex :" + regex);
+            // console.log("regex :" + regex);
             if (host.match(regex)) {
                 return true;
             }
@@ -586,18 +588,26 @@ TRACKMENOT.TMNInjected = function() {
     return {
         handleRequest: function(request, sender, sendResponse) {
             if (request.tmnQuery) {
-                /*if (tmn_id >= request.tmnID) {
+                if (tmn_id >= request.tmnID) {
                     console.log("Duplicate queries ignored");
                     return;
-                }*/
+                }
                 var engine = JSON.parse(request.tmnEngine);
                 console.log("Received: " + request.tmnQuery + " on engine: " + engine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
-                var tmn_query = request.tmnQuery;
                 
+                if(last_engine != engine){
+                    console.log("Changed search engine, visiting " + engine2homepage[engine.id]);
+                    setTMNCurrentURL(engine2homepage[engine.id])
+                    console.log("Visited" + engine2homepage[engine.id]);
+                }
+                var tmn_query = request.tmnQuery;
                 var tmn_mode = request.tmnMode;
                 tmn_id = request.tmnID;
                 var tmn_URLmap = request.tmnUrlMap;
                 var encodedurl = sendQuery(engine, tmn_query, tmn_mode, tmn_URLmap);
+
+                last_engine = engine;
+                
                 if (encodedurl !== null) {
                     console.log("scheduling next set url");
                     setTMNCurrentURL(encodedurl);
