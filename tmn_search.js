@@ -595,18 +595,24 @@ TRACKMENOT.TMNInjected = function() {
                 var engine = JSON.parse(request.tmnEngine);
                 console.log("Received: " + request.tmnQuery + " on engine: " + engine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
                 
-                if(last_engine != engine){
-                    console.log("Changed search engine, visiting " + engine2homepage[engine.id]);
-                    setTMNCurrentURL(engine2homepage[engine.id])
-                    console.log("Visited" + engine2homepage[engine.id]);
-                }
+                // if(last_engine != engine){
+                //     console.log("Changed search engine, visiting " + engine2homepage[engine.id]);
+                //     try {
+                //         window.location.href = engine2homepage[engine.id];
+                //         setTMNCurrentURL(engine2homepage[engine.id]);
+                //         console.log("Visited" + engine2homepage[engine.id]);
+                //     } catch (ex) {
+                //         console.log("Failed visiting " + engine2homepage[engine.id] + " first. Error: " + ex)
+                //     }                    
+                // }
+
                 var tmn_query = request.tmnQuery;
                 var tmn_mode = request.tmnMode;
                 tmn_id = request.tmnID;
                 var tmn_URLmap = request.tmnUrlMap;
                 var encodedurl = sendQuery(engine, tmn_query, tmn_mode, tmn_URLmap);
 
-                last_engine = engine;
+                // last_engine = engine;
                 
                 if (encodedurl !== null) {
                     console.log("scheduling next set url");

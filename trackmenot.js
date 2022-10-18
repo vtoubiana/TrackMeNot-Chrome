@@ -653,7 +653,6 @@ TRACKMENOT.TMNSearch = function() {
         if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space ;
         tmn_hasloaded = false;
         if (tmn_options.useTab) {
-            console.log("trackmonot.js Line 665: Using tab");
             var TMNReq = {};
             TMNReq.tmnQuery = queryToSend;
             TMNReq.tmnEngine = JSON.stringify(getEngineById(engine));
@@ -668,7 +667,6 @@ TRACKMENOT.TMNSearch = function() {
                 console.log('Message sent to the tab: ' + tmn_tab_id + ' : ' + JSON.stringify(TMNReq));
             }
         } else {
-            console.log("trackmonot.js Line 680: Not using tab");
             var queryURL = queryToURL(url, queryToSend);
             console.log("The encoded URL is " + queryURL);
             var xhr = new XMLHttpRequest();
@@ -687,7 +685,6 @@ TRACKMENOT.TMNSearch = function() {
                         tmn_hasloaded = true;
                         reschedule();
                     } else {
-                        console.log("The error at line 697");
                         rescheduleOnError();
                     }
               }
@@ -906,7 +903,6 @@ TRACKMENOT.TMNSearch = function() {
                 break;
             case "tmnError": //Remove timer and then reschedule;
                 clearTimeout(tmn_errTimeout);
-                console.log("The error at line 916");
                 rescheduleOnError();
                 sendResponse({});
                 break;
