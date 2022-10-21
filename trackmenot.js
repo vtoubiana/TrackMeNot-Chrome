@@ -29,7 +29,7 @@ if (!TRACKMENOT) var TRACKMENOT = {};
 TRACKMENOT.TMNSearch = function() {
     var tmn_tab_id = -1;
 
-    var debug_ = true;
+    var debug_ = true; //flag in unused console.log override function
     var useIncrementals = true;
     var incQueries = [];
     var engine = 'google';
@@ -541,6 +541,7 @@ TRACKMENOT.TMNSearch = function() {
 
     }
 
+    /** adds query words to incQueries array, with some kind of randomness and manipulation */
     function getSubQuery(queryWords) {
         var incQuery = "";
         var randomArray = new Array();
@@ -559,6 +560,7 @@ TRACKMENOT.TMNSearch = function() {
     }
 
 
+    /** get a random query and replace any newline characters with spaces */
     function getQuery() {
         var term = randomQuery();
         if (term.indexOf('\n') > 0) { // yuck, replace w' chomp();
@@ -609,11 +611,13 @@ TRACKMENOT.TMNSearch = function() {
     }
 
 
-
-
+    /** gets a query, and sends it, either implicitly (calling sendQuery with null)
+     * or explicitly after splitting >3 word queries. seems like it could use revision */
     function doSearch() {
         var newquery = getQuery();
         try {
+            //messy construction where if getSubQuery has generated incQueries, then
+            //sendQuery will fill in the query from this
             if (incQueries && incQueries.length > 0)
                 sendQuery(null);
             else {
@@ -640,6 +644,7 @@ TRACKMENOT.TMNSearch = function() {
 
     function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
+        //Q: where is engine set, as used here?
         var url = getEngineById(engine).urlmap;
         if (queryToSend === null) {
             if (incQueries && incQueries.length > 0)
@@ -649,8 +654,8 @@ TRACKMENOT.TMNSearch = function() {
                 return;
             }
         }
-        if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase();
-        if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space ;
+        if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase(); //high chance of setting all lowercase
+        if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space
         tmn_hasloaded = false;
         if (tmn_options.useTab) {
             var TMNReq = {};
@@ -765,6 +770,7 @@ TRACKMENOT.TMNSearch = function() {
         tmn_searchTimer = window.setTimeout(doSearch, delay);
     }
 
+    //Q: does Burst mode detect searches correctly?
     function enterBurst(burst_engine) {
         if (!tmn_options.burstMode) return;
         console.log("Entering burst mode for engine: " + burst_engine);
@@ -779,11 +785,14 @@ TRACKMENOT.TMNSearch = function() {
     }
 
     function saveOptions() {
-        console.log("Save option: " + JSON.stringify(tmn_options));
+        console.log("Save option within trackmenot.js: " + JSON.stringify(tmn_options));
 
         api.storage.local.set({"options_tmn":tmn_options});
         api.storage.local.set({"engines_tmn":tmn_engines});
         api.storage.local.set({"gen_queries":TMNQueries});
+
+        console.log("new local options setting: ")
+        console.log(getStorage("options_tmn", logGotItem));
     }
 
 
@@ -961,6 +970,12 @@ TRACKMENOT.TMNSearch = function() {
 
     function onError(error) {
       console.log(`Error: ${error}`);
+    }
+
+
+    //from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
+    function logGotItem(item) {
+        console.log(item);
     }
 
 	function getStorage(keys,callback) {
