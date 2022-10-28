@@ -202,8 +202,11 @@ TRACKMENOT.TMNSearch = function() {
 
 // Tab functions
 
+    /** using the new value for the useT option, determine if there was a change and if so, either create or delete a tab (corresponding to that new value) */
     function changeTabStatus(useT) {
         if (useT === tmn_options.useTab) return;
+        console.log("detected change in useTab value");
+        //ERR: this doesn't seem to get called / the change isn't detected
         tmn_options.useTab= useT;
         if (useT) {
             createTab();
@@ -974,10 +977,12 @@ TRACKMENOT.TMNSearch = function() {
 
 
     //from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
+    //** wrapper for console.log to pass as a callback function when getting items from local storage */
     function logGotItem(item) {
         console.log(item);
     }
 
+    /** wrapper function to access local storage, using storage item key and a callback function to pass the got item(s) */
 	function getStorage(keys,callback) {
 		try {
 			let gettingItem = api.storage.local.get(keys);
@@ -1018,7 +1023,7 @@ TRACKMENOT.TMNSearch = function() {
     
     function updateOptions (item) {
         tmn_options = item;
-        console.log("Restore: " + tmn_options.enabled);
+        console.log("Restore: " + tmn_options.enabled); //??
         
         if ( tmn_options.feedList !== item.feedList  ){
             tmn_options.feedList = item.feedList ;
@@ -1049,10 +1054,13 @@ TRACKMENOT.TMNSearch = function() {
     
     
 
-    
+    /** sets search engines to new set of values if new set of values present, 
+     * otherwise restores to default and overwrites local storage engine settings */
     function setEngines(item) {
         if(item) {
             tmn_engines = item;
+            console.log("set new search engine values:");
+            console.log(item);
         } else {
             tmn_engines = default_engines;
             api.storage.local.set({"engines_tmn":tmn_engines});
@@ -1072,15 +1080,24 @@ TRACKMENOT.TMNSearch = function() {
             handleRequest(request, sender, sendResponse);
         },
 
+        /** called on api.storage.onChanged event listener, should update options and engines with new values */
         _logStorageChange: function (items) {
-            if ('options_tmn' in items) 
+            console.log('detected a change in api.storage within trackmenot.js');
+            console.log(items);
+            if ('options_tmn' in items) {
+                console.log('detected change in options');
                 updateOptions(items.options_tmn.newValue);
-            if ('engines' in items)
-                setEngines(items.engines.newValue);        
+            }
+            if ('engines_tmn' in items) {
+                console.log('detected change in search engines');
+                setEngines(items.engines_tmn.newValue);  
+            }
         },
         
+        /** callback function called on extension startup with contents of local storage for engines, options, logs, and gen_queries */
         _restoreTMN: function (items) {
-            if (!items["engines_tmn"]) {			
+            if (!items["engines_tmn"]) {
+               console.log("could not find saved search engine options in local storage, setting default search engines");			
                setDefaultEngines(); 
             } else {       
 			   restoreQueries(items["gen_queries"]);
