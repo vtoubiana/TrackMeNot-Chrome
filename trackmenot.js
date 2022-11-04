@@ -136,7 +136,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'yahoo',
                 name: 'Yahoo! Search',
-                urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+                urlmap: "https://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
                 enabled: true,
                 regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
                 host: "([a-z.]*?search\.yahoo\.com)$"
@@ -144,7 +144,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'bing',
                 name: 'Bing Search',
-                urlmap: "http://www.bing.com/search?q=|",
+                urlmap: "https://www.bing.com/search?q=|",
                 enabled: true,
                 regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
                 host: "(www\.bing\.com)$"
@@ -152,7 +152,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'baidu',
                 name: 'Baidu Search',
-                urlmap: "http://www.baidu.com/s?wd=|",
+                urlmap: "https://www.baidu.com/s?wd=|",
                 enabled: false,
                 regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
                 host: "(www\.baidu\.com)$"
@@ -885,6 +885,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
     function stopTMN() {
+        console.log("stopTMN(): stopping TMN");z
         tmn_options.enabled = false;
         deleteTab();
         try {
@@ -1140,8 +1141,8 @@ TRACKMENOT.TMNSearch = function () {
 
         if (tmn_options.enabled !== item.enabled) {
             tmn_options.enabled = item.enabled;
-            if (tmn_options.enabled) startTMN();
-            else stopTMN();
+            if (tmn_options.enabled) {startTMN();}
+            else {stopTMN();} //defensively putting braces here
         }
 
         changeTabStatus(tmn_options.useTab);
