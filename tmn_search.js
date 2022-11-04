@@ -306,11 +306,16 @@ TRACKMENOT.TMNInjected = function() {
                         'query': link,
                         'id': tmn_id
                     });
-                    log(logEntry);
+                    add_log(logEntry);
                     try {
                         clickElt(pageLinks[i]);
                         console.log("link clicked");
                     } catch (e) {
+                        add_log({
+                            'type': 'ERROR',
+                            'query': "[ERROR in tmn_search.js] error opening click-through request for: " + e.message,
+                            'engine': engine, 
+                        });
                         console.log("error opening click-through request for " + e);
                     }
                     return;
@@ -480,7 +485,7 @@ TRACKMENOT.TMNInjected = function() {
             'query': queryToSend,
             'id': tmn_id
         });
-        log(logEntry);
+        add_log(logEntry);
         updateStatus(queryToSend);
         if (host === "" || !host.match(reg)) {
             try {
@@ -488,6 +493,11 @@ TRACKMENOT.TMNInjected = function() {
                 return encodedUrl;
             } catch (ex) {
                 console.log("Caught exception: " + ex);
+                add_log({
+                    'type': 'ERROR',
+                    'query': "[ERROR in tmn_search.js] " + ex.message,
+                    'engine': engine, 
+                });
                 api.runtime.sendMessage({
                     "url": encodedUrl
                 });
@@ -514,6 +524,11 @@ TRACKMENOT.TMNInjected = function() {
                     return encodedUrl;
                 } catch (ex) {
                     console.log("Caught exception: " + ex);
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in tmn_search.js] Caught exception: " + ex.message,
+                        'engine': engine, 
+                    });
                     api.runtime.sendMessage({
                         "url": encodedUrl
                     });
@@ -553,7 +568,7 @@ TRACKMENOT.TMNInjected = function() {
     }
 
 
-    function log(msg) {
+    function add_log(msg) {
         api.runtime.sendMessage({tmnLog: msg});
     }
 
@@ -623,7 +638,12 @@ TRACKMENOT.TMNInjected = function() {
                 try {
                     simulateClick(request.click_eng);
                 } catch(ex) {
-                    console.log ("Failed so click on results")
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in tmn_search.js] Failed so click on results: " + ex.message,
+                        'engine': engine, 
+                    });
+                    console.log("Failed so click on results");
                 }
             }
             return; // snub them.
