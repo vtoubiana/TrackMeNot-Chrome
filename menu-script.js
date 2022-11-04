@@ -36,7 +36,8 @@ TRACKMENOT.Menus = function() {
        getStorage("options_tmn", logGotItem);
 
    },
-      
+    
+   /** changes the state of the useTab option, sets a new set of options in local storage, amnd reloads the HTML for the menu */
    toggleTabFrame: function() {
         options.useTab = !options.useTab
         api.storage.local.set({"options_tmn":options});

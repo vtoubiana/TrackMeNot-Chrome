@@ -135,7 +135,7 @@ TRACKMENOT.TMNSearch = function() {
         {
             id: 'yahoo',
             name: 'Yahoo! Search',
-            urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+            urlmap: "https://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
             enabled: true,
             regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
             host: "([a-z.]*?search\.yahoo\.com)$"
@@ -143,7 +143,7 @@ TRACKMENOT.TMNSearch = function() {
         {
             id: 'bing',
             name: 'Bing Search',
-            urlmap: "http://www.bing.com/search?q=|",
+            urlmap: "https://www.bing.com/search?q=|",
             enabled: true,
             regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
             host: "(www\.bing\.com)$"
@@ -151,7 +151,7 @@ TRACKMENOT.TMNSearch = function() {
         {
             id: 'baidu',
             name: 'Baidu Search',
-            urlmap: "http://www.baidu.com/s?wd=|",
+            urlmap: "https://www.baidu.com/s?wd=|",
             enabled: false,
             regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
             host: "(www\.baidu\.com)$"
@@ -232,7 +232,7 @@ TRACKMENOT.TMNSearch = function() {
         try {
             api.tabs.create({
                 'active': false,
-                'url': 'http://www.google.com'
+                'url': 'https://www.google.com'
             }, function (e) {iniTab(e, pendingRequest)});
         } catch (ex) {
             cerr('Can no create TMN tab:', ex);
@@ -945,7 +945,7 @@ TRACKMENOT.TMNSearch = function() {
         tmn_options.use_dhs_list = false;
         tmn_options.kwBlackList = ['bomb', 'porn', 'pornographie'];
         tmn_options.saveLogs= true;
-        tmn_options.feedList = ['http://www.techmeme.com/index.xml','http://rss.slashdot.org/Slashdot/slashdot','http://feeds.nytimes.com/nyt/rss/HomePage'];
+        tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
         tmn_options.disableLogs= false;
         tmn_options.tmn_id = 0;     
     }
