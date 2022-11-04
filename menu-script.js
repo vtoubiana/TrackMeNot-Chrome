@@ -25,12 +25,19 @@ TRACKMENOT.Menus = function() {
   },
   
    toggleOnOff: function() {   
-	options.enabled = !options.enabled      
+       console.log("toggling option in menu");
+       options.enabled = !options.enabled      
 
-         api.storage.local.set({"options_tmn":options});
-          TRACKMENOT.Menus.onLoadMenu({"options_tmn":options});
+       console.log("saving options in menu-script.js");
+       console.log(JSON.stringify(options));
+       api.storage.local.set({"options_tmn":options});
+       TRACKMENOT.Menus.onLoadMenu({"options_tmn":options});
+       console.log("new options");
+       getStorage("options_tmn", logGotItem);
+
    },
-      
+    
+   /** changes the state of the useTab option, sets a new set of options in local storage, amnd reloads the HTML for the menu */
    toggleTabFrame: function() {
         options.useTab = !options.useTab
         api.storage.local.set({"options_tmn":options});
@@ -62,3 +69,21 @@ document.addEventListener('DOMContentLoaded', function () {
   $("#trackmenot-menu-help").click(TRACKMENOT.Menus.showHelp)
   api.storage.local.get(["options_tmn"],TRACKMENOT.Menus.onLoadMenu)
 });
+
+function onError(){
+  console.log("Error");
+}
+
+//from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
+function logGotItem(item) {
+    console.log(item);
+}
+
+function getStorage(keys,callback) {
+    try {
+        let gettingItem = api.storage.local.get(keys);
+        gettingItem.then(callback, onError);
+    } catch (ex) {
+        api.storage.local.get(keys,callback); 
+    }   
+}

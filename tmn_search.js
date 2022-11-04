@@ -451,7 +451,7 @@ TRACKMENOT.TMNInjected = function() {
             //     window.setTimeout(clickButton, nextPress);
             // else
             //     window.setTimeout(pressEnter, nextPress, searchBox);
-            window.setTimeout( sendCurrentURL, nextpress+1)
+            window.setTimeout( sendCurrentURL, nextpress+1) //no function called sendCurrentURL Q: ??
         }
     }
 

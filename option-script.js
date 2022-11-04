@@ -8,8 +8,8 @@ if (chrome == undefined) {
 }
 
 
-var tmn_options = {};
-var tmn_engines ={};
+var tmn_options = {}; //does not contain engines
+var tmn_engines ={}; //search engines used
 var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
 var options = {};
 
@@ -100,6 +100,7 @@ function loadHandlers() {
         return -1;
     }
 
+    /** updates the list of search engines by checking which engine checkboxes are enabled */
      function updateEngineList() {
         tmn_engines.list.forEach(function (x) {return x.enabled = false;});
         $("#search-engine-list :checked").each(function() {
@@ -204,7 +205,7 @@ function TMNShowLog(items) {
 	//window.setTimeout(TMNShowLog, 1000,items);
 }
 
-
+/** updates the HTML display for the currently selected engines in the options page */
 function TMNShowEngines(item) {
     tmn_engines= item;
     var htmlStr = "<table>";
@@ -286,10 +287,12 @@ var htmlStr =  '<a href="#dhs">DHS</a> | <a href="#rss"> RSS </a> | <a href="#po
 }
 
 
+/** sets local storage options_tmn, also used by trackmenot.js */
 function saveOptions() {
     var options = {};
     options.enabled = $("#trackmenot-opt-enabled").is(':checked');
 
+    console.log("saving options within option-script.js");
     console.log("Saved Enabled: " + options.enabled);
     options.useTab = $("#trackmenot-opt-useTab").is(':checked');
     options.burstMode = $("#trackmenot-opt-burstMode").is(':checked');
@@ -302,6 +305,9 @@ function saveOptions() {
     options.use_dhs_list = $("#trackmenot-use-dhslist").is(':checked');
     options.kwBlackList = $("#trackmenot-blacklist").val().split(",");
     api.storage.local.set({"options_tmn":options});
+
+    console.log("new local options setting: ")
+    getStorage("options_tmn", console.log); //not clear that you need to wrap console.log in a callback function
 }
 
 function handleRequest(request, sender, sendResponse) {
@@ -320,6 +326,11 @@ function handleRequest(request, sender, sendResponse) {
 
 function onError(){
 	console.log("Error");
+}
+
+/** from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get */
+function logGotItem(item) {
+    console.log(item);
 }
 
 function getStorage(keys,callback) {

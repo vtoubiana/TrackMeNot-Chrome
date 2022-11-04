@@ -29,7 +29,7 @@ if (!TRACKMENOT) var TRACKMENOT = {};
 TRACKMENOT.TMNSearch = function () {
     var tmn_tab_id = -1;
 
-    var debug_ = true;
+    var debug_ = true; //flag in unused console.log override function
     var useIncrementals = true;
     var incQueries = [];
     var engine = 'google';
@@ -161,7 +161,6 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
-
     function getEngineById(id) {
         return tmn_engines.list.filter(function (a) {
             return a.id === id;
@@ -204,9 +203,13 @@ TRACKMENOT.TMNSearch = function () {
 
     // Tab functions
 
+    /** using the new value for the useT option, determine if there was a change and if so, either create or delete a tab (corresponding to that new value) */
     function changeTabStatus(useT) {
         if (useT === tmn_options.useTab) return;
-        tmn_options.useTab = useT;
+        console.log("detected change in useTab value");
+        //ERR: this doesn't seem to get called / the change isn't detected
+        tmn_options.useTab= useT;
+
         if (useT) {
             createTab();
         } else {
@@ -231,8 +234,9 @@ TRACKMENOT.TMNSearch = function () {
         try {
             api.tabs.create({
                 'active': false,
-                'url': 'http://www.google.com'
-            }, function (e) { iniTab(e, pendingRequest) });
+                'url': 'https://www.google.com'
+            }, function (e) {iniTab(e, pendingRequest)});
+
         } catch (ex) {
             add_log({
                 'type': 'ERROR',
@@ -554,6 +558,7 @@ TRACKMENOT.TMNSearch = function () {
 
     }
 
+    /** adds query words to incQueries array, with some kind of randomness and manipulation */
     function getSubQuery(queryWords) {
         var incQuery = "";
         var randomArray = new Array();
@@ -572,6 +577,7 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
+    /** get a random query and replace any newline characters with spaces */
     function getQuery() {
         var term = randomQuery();
         if (term.indexOf('\n') > 0) { // yuck, replace w' chomp();
@@ -632,11 +638,13 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
-
-
+    /** gets a query, and sends it, either implicitly (calling sendQuery with null)
+     * or explicitly after splitting >3 word queries. seems like it could use revision */
     function doSearch() {
         var newquery = getQuery();
         try {
+            //messy construction where if getSubQuery has generated incQueries, then
+            //sendQuery will fill in the query from this
             if (incQueries && incQueries.length > 0)
                 sendQuery(null);
             else {
@@ -668,6 +676,7 @@ TRACKMENOT.TMNSearch = function () {
 
     function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
+        //Q: where is engine set, as used here?
         var url = getEngineById(engine).urlmap;
         if (queryToSend === null) {
             if (incQueries && incQueries.length > 0)
@@ -677,8 +686,8 @@ TRACKMENOT.TMNSearch = function () {
                 return;
             }
         }
-        if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase();
-        if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space ;
+        if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase(); //high chance of setting all lowercase
+        if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space
         tmn_hasloaded = false;
         if (tmn_options.useTab) {
             var TMNReq = {};
@@ -849,6 +858,7 @@ TRACKMENOT.TMNSearch = function () {
         tmn_searchTimer = window.setTimeout(doSearch, delay);
     }
 
+    //Q: does Burst mode detect searches correctly?
     function enterBurst(burst_engine) {
         if (!tmn_options.burstMode) return;
         console.log("Entering burst mode for engine: " + burst_engine);
@@ -863,11 +873,14 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     function saveOptions() {
-        console.log("Save option: " + JSON.stringify(tmn_options));
+        console.log("Save option within trackmenot.js: " + JSON.stringify(tmn_options));
 
-        api.storage.local.set({ "options_tmn": tmn_options });
-        api.storage.local.set({ "engines_tmn": tmn_engines });
-        api.storage.local.set({ "gen_queries": TMNQueries });
+        api.storage.local.set({"options_tmn":tmn_options});
+        api.storage.local.set({"engines_tmn":tmn_engines});
+        api.storage.local.set({"gen_queries":TMNQueries});
+
+        console.log("new local options setting: ");
+        console.log(getStorage("options_tmn", logGotItem));
     }
 
 
@@ -1026,10 +1039,11 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options.use_black_list = true;
         tmn_options.use_dhs_list = false;
         tmn_options.kwBlackList = ['bomb', 'porn', 'pornographie'];
-        tmn_options.saveLogs = true;
-        tmn_options.feedList = ['http://www.techmeme.com/index.xml', 'http://rss.slashdot.org/Slashdot/slashdot', 'http://feeds.nytimes.com/nyt/rss/HomePage'];
-        tmn_options.disableLogs = false;
-        tmn_options.tmn_id = 0;
+        tmn_options.saveLogs= true;
+        tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
+        tmn_options.disableLogs= false;
+        tmn_options.tmn_id = 0;     
+
     }
 
     function initQueries() {
@@ -1056,20 +1070,27 @@ TRACKMENOT.TMNSearch = function () {
     function onError(error) {
         console.log(`Error: ${error}`);
     }
+    
+    //from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
+    //** wrapper for console.log to pass as a callback function when getting items from local storage */
+    function logGotItem(item) {
+        console.log(item);
+    }
 
-    function getStorage(keys, callback) {
-        try {
-            let gettingItem = api.storage.local.get(keys);
-            gettingItem.then(callback, onError);
-        } catch (ex) {
-            add_log({
+    /** wrapper function to access local storage, using storage item key and a callback function to pass the got item(s) */
+	function getStorage(keys,callback) {
+		try {
+			let gettingItem = api.storage.local.get(keys);
+			gettingItem.then(callback, onError);
+		} catch (ex) {
+      add_log({
                 'type': 'ERROR',
                 'query': "[ERROR in trackmenot.js] " + ex.message,
                 'engine': engine,
-            });
-            chrome.storage.local.get(keys, callback);
-        }
-    }
+      });
+			chrome.storage.local.get(keys,callback); 
+		}   
+	}
 
     function setDefaultEngines() {
         tmn_engines = default_engines;
@@ -1107,10 +1128,11 @@ TRACKMENOT.TMNSearch = function () {
 
     function updateOptions(item) {
         tmn_options = item;
-        console.log("Restore: " + tmn_options.enabled);
+        console.log("Restore: " + tmn_options.enabled); //??
+        
+        if ( tmn_options.feedList !== item.feedList  ){
+            tmn_options.feedList = item.feedList ;
 
-        if (tmn_options.feedList !== item.feedList) {
-            tmn_options.feedList = item.feedList;
             if (tmn_options.feedList) {
                 initQueries();
             }
@@ -1141,12 +1163,14 @@ TRACKMENOT.TMNSearch = function () {
         }
     }
 
-
-
+    /** sets search engines to new set of values if new set of values present, 
+     * otherwise restores to default and overwrites local storage engine settings */
 
     function setEngines(item) {
         if (item) {
             tmn_engines = item;
+            console.log("set new search engine values:");
+            console.log(item);
         } else {
             tmn_engines = default_engines;
             api.storage.local.set({ "engines_tmn": tmn_engines });
@@ -1166,19 +1190,28 @@ TRACKMENOT.TMNSearch = function () {
             handleRequest(request, sender, sendResponse);
         },
 
+        /** called on api.storage.onChanged event listener, should update options and engines with new values */
         _logStorageChange: function (items) {
-            if ('options_tmn' in items)
+            console.log('detected a change in api.storage within trackmenot.js');
+            console.log(items);
+            if ('options_tmn' in items) {
+                console.log('detected change in options');
                 updateOptions(items.options_tmn.newValue);
-            if ('engines' in items)
-                setEngines(items.engines.newValue);
+            }
+            if ('engines_tmn' in items) {
+                console.log('detected change in search engines');
+                setEngines(items.engines_tmn.newValue);  
+            }
         },
-
+        
+        /** callback function called on extension startup with contents of local storage for engines, options, logs, and gen_queries */
         _restoreTMN: function (items) {
             if (!items["engines_tmn"]) {
-                setDefaultEngines();
-            } else {
-                restoreQueries(items["gen_queries"]);
-                setEngines(items["engines_tmn"]);
+               console.log("could not find saved search engine options in local storage, setting default search engines");			
+               setDefaultEngines(); 
+            } else {       
+			   restoreQueries(items["gen_queries"]);
+               setEngines(items["engines_tmn"]); 
             }
 
             if (!items["options_tmn"]) {
