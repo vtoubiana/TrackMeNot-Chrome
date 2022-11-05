@@ -55,8 +55,7 @@ TRACKMENOT.TMNSearch = function () {
     var currentTMNURL = '';
 
     var tmn_options = {};
-
-
+    var last_log_id = 0;
 
     var skipex = new Array(
         /calendar/i, /advanced/i, /click /i, /terms/i, /Groups/i,
@@ -136,7 +135,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'yahoo',
                 name: 'Yahoo! Search',
-                urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+                urlmap: "https://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
                 enabled: true,
                 regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
                 host: "([a-z.]*?search\.yahoo\.com)$"
@@ -144,7 +143,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'bing',
                 name: 'Bing Search',
-                urlmap: "http://www.bing.com/search?q=|",
+                urlmap: "https://www.bing.com/search?q=|",
                 enabled: true,
                 regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
                 host: "(www\.bing\.com)$"
@@ -152,7 +151,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'baidu',
                 name: 'Baidu Search',
-                urlmap: "http://www.baidu.com/s?wd=|",
+                urlmap: "https://www.baidu.com/s?wd=|",
                 enabled: false,
                 regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
                 host: "(www\.baidu\.com)$"
@@ -885,6 +884,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
     function stopTMN() {
+        console.log("stopTMN(): stopping TMN");z
         tmn_options.enabled = false;
         deleteTab();
         try {
@@ -957,6 +957,10 @@ TRACKMENOT.TMNSearch = function () {
 
     function handleRequest(request, sender, sendResponse) {
         if (request.tmnLog) {
+            if ((request.tmnID) && (request.tmnID <= last_log_id)) {
+                console.log("blocked duplicate log request");
+            }
+            last_log_id = request.tmnID;
             console.log("Background logging : " + request.tmnLog);
             var logtext = JSON.parse(request.tmnLog);
             add_log(logtext);
@@ -1042,7 +1046,7 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options.saveLogs= true;
         tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
         tmn_options.disableLogs= false;
-        tmn_options.tmn_id = 0;     
+        tmn_options.tmn_id = 1;     
 
     }
 
@@ -1127,7 +1131,9 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     function updateOptions(item) {
+        var tmnID = tmn_options.tmn_id; //hack to prevent tmnID from becoming null, until request_id incrementing is moved to logging from options
         tmn_options = item;
+        tmn_options.tmn_id = tmnID;
         console.log("Restore: " + tmn_options.enabled); //??
         
         if ( tmn_options.feedList !== item.feedList  ){
@@ -1140,8 +1146,8 @@ TRACKMENOT.TMNSearch = function () {
 
         if (tmn_options.enabled !== item.enabled) {
             tmn_options.enabled = item.enabled;
-            if (tmn_options.enabled) startTMN();
-            else stopTMN();
+            if (tmn_options.enabled) {startTMN();}
+            else {stopTMN();} //defensively putting braces here
         }
 
         changeTabStatus(tmn_options.useTab);

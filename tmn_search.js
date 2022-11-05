@@ -28,7 +28,7 @@ if (!TRACKMENOT)
 TRACKMENOT.TMNInjected = function() {
     var debug_script = true;
 
-    var tmn_id = 0;
+    var current_request_id = 1;
     var tmnCurrentURL = '';
     var engine = '';
     var last_engine = '';
@@ -304,7 +304,7 @@ TRACKMENOT.TMNInjected = function() {
                         'type': 'click',
                         "engine": engine.id,
                         'query': link,
-                        'id': tmn_id
+                        'id': current_request_id
                     });
                     add_log(logEntry);
                     try {
@@ -483,7 +483,7 @@ TRACKMENOT.TMNInjected = function() {
             "engine": engine.id,
             'mode': tmn_mode,
             'query': queryToSend,
-            'id': tmn_id
+            'id': current_request_id
         });
         add_log(logEntry);
         updateStatus(queryToSend);
@@ -603,7 +603,8 @@ TRACKMENOT.TMNInjected = function() {
     return {
         handleRequest: function(request, sender, sendResponse) {
             if (request.tmnQuery) {
-                if (tmn_id >= request.tmnID) {
+                last_request_id = current_request_id;
+                if (last_request_id >= request.tmnID) {
                     console.log("Duplicate queries ignored");
                     return;
                 }
@@ -623,7 +624,7 @@ TRACKMENOT.TMNInjected = function() {
 
                 var tmn_query = request.tmnQuery;
                 var tmn_mode = request.tmnMode;
-                tmn_id = request.tmnID;
+                current_request_id = request.tmnID;
                 var tmn_URLmap = request.tmnUrlMap;
                 var encodedurl = sendQuery(engine, tmn_query, tmn_mode, tmn_URLmap);
 
