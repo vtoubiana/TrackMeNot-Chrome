@@ -55,8 +55,7 @@ TRACKMENOT.TMNSearch = function () {
     var currentTMNURL = '';
 
     var tmn_options = {};
-
-
+    var last_log_id = 0;
 
     var skipex = new Array(
         /calendar/i, /advanced/i, /click /i, /terms/i, /Groups/i,
@@ -958,6 +957,10 @@ TRACKMENOT.TMNSearch = function () {
 
     function handleRequest(request, sender, sendResponse) {
         if (request.tmnLog) {
+            if ((request.tmnID) && (request.tmnID <= last_log_id)) {
+                console.log("blocked duplicate log request");
+            }
+            last_log_id = request.tmnID;
             console.log("Background logging : " + request.tmnLog);
             var logtext = JSON.parse(request.tmnLog);
             add_log(logtext);
@@ -1043,7 +1046,7 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options.saveLogs= true;
         tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
         tmn_options.disableLogs= false;
-        tmn_options.tmn_id = 0;     
+        tmn_options.tmn_id = 1;     
 
     }
 
@@ -1128,7 +1131,9 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     function updateOptions(item) {
+        var tmnID = tmn_options.tmn_id; //hack to prevent tmnID from becoming null, until request_id incrementing is moved to logging from options
         tmn_options = item;
+        tmn_options.tmn_id = tmnID;
         console.log("Restore: " + tmn_options.enabled); //??
         
         if ( tmn_options.feedList !== item.feedList  ){
