@@ -366,7 +366,7 @@ TRACKMENOT.TMNInjected = function() {
         return null;
     }
 
-
+    /** function that identifies differences between the current searchValue entered in the search bar and the nextQuery (queued to send) */
     function getCommonWords(searchValue, nextQuery) {
         var searched = searchValue.split(' ');
         var tosearch = nextQuery.split(' ');

@@ -336,7 +336,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
 
-
+    /** get a random query term from current type of queryset */
     function randomQuery() {
         var qtype = randomElt(typeoffeeds);
         var queries = [];
@@ -360,7 +360,7 @@ TRACKMENOT.TMNSearch = function () {
         saveOptions();
     }
 
-
+    /** unused function that parses page to extract phrases and calls addQuery with results */
     function extractQueries(html) {
         var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'�{}:?%|\^~`=]", "g");
         var splitRegExp = new RegExp('^[\\[\\]\\(\\)\\"\']', "g");
@@ -392,7 +392,8 @@ TRACKMENOT.TMNSearch = function () {
             var rand = roll(0, TMNQueries.extracted.length - 1);
             TMNQueries.extracted.splice(rand, 1);
         }
-        console.log(TMNQueries.extracted)
+        console.log("extracted:");
+        console.log(TMNQueries.extracted);
         addQuery(queryToAdd, TMNQueries.extracted);
     }
 
@@ -414,6 +415,7 @@ TRACKMENOT.TMNSearch = function () {
         return true;
     }
 
+    /** runs several checks on validity of the term to add, & if valid, add to the queryList */
     function addQuery(term, queryList) {
         var noniso = new RegExp("[^a-zA-Z0-9_.\ \\u00C0-\\u00FF+]+", "g");
 
@@ -443,7 +445,7 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
-    // returns # of keywords added
+    /** given a raw string (possibly XML), returns a filtered string of its text content */
     function filterKeyWords(rssTitles) {
         var addStr = ""; //tmp-debugging
         var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'�{}:?%|\^~`=]+", "g");
@@ -451,6 +453,7 @@ TRACKMENOT.TMNSearch = function () {
         var wordArray = rssTitles.split(forbiddenChar);
 
         for (var i = 0; i < wordArray.length; i++) {
+            //uses a break seq created in addRssTitles, '-----'
             if (!wordArray[i].match('-----')) {
                 var word = wordArray[i].split(splitRegExp)[0];
                 if (word && word.length > 2) {
@@ -472,7 +475,7 @@ TRACKMENOT.TMNSearch = function () {
         return addStr;
     }
 
-    // returns # of keywords added
+    /** returns # of keywords added */
     function addRssTitles(xmlData, feedUrl) {
         var rssTitles = "";
 
@@ -501,7 +504,7 @@ TRACKMENOT.TMNSearch = function () {
         return 1;
     }
 
-
+    /** loads list of words from JSON list of surveilled words/phrases used by DHS */
     function readDHSList() {
         TMNQueries.dhs = [];
         var i = 0;
@@ -529,7 +532,7 @@ TRACKMENOT.TMNSearch = function () {
         req.get();
     }
 
-
+    /** requests RSS XML pages and on successful completion, calls addRssTitles with the results */
     function doRssFetch(feedUrl) {
         if (!feedUrl) return;
         console.log("Feed Url: " + feedUrl);
@@ -611,11 +614,25 @@ TRACKMENOT.TMNSearch = function () {
         }
     }
 
+    /** after query has been sent, updates the TMN extension badge with the current query */
     function updateOnSend(queryToSend) {
         try {
             api.browserAction.setBadgeBackgroundColor({ 'color': [113, 113, 198, 255] })
             api.browserAction.setBadgeText({ 'text': queryToSend });
             api.browserAction.setTitle({ 'title': engine + ': ' + queryToSend });
+            //KEYWORD EXTRACTION
+            if (Math.random() < .3) {
+                console.log("[in future] attempting keyword extraction after successful query");
+                //TODO: attempt keyword extraction
+                //if success, for now can add to TMNQueries.extracted, this will filter in
+                //over time
+                //future work: 
+                // can perform more sophistocated analysis of what constitutes a keyword
+                // can change NEXT search to be based on this keyword
+                //    using scheduleNextSearch?
+            }
+            
+            
         } catch (ex) {
             add_log({
                 'type': 'ERROR',
@@ -643,6 +660,8 @@ TRACKMENOT.TMNSearch = function () {
     function doSearch() {
         var newquery = getQuery();
         try {
+            //TODO: add check if successful keyword extraction from page, next search based on this keyword extraction
+
             //messy construction where if getSubQuery has generated incQueries, then
             //sendQuery will fill in the query from this
             if (incQueries && incQueries.length > 0)
@@ -673,7 +692,8 @@ TRACKMENOT.TMNSearch = function () {
         }
     }
 
-
+    /** send the queryToSend by searching it either by sending it to the TMN tab if enabled, 
+     * or encoding it into a search URL */
     function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
         //Q: where is engine set, as used here?
@@ -838,6 +858,9 @@ TRACKMENOT.TMNSearch = function () {
 
 
     //Cleaning stop here
+    /** sets the search engine for next search, 
+     * clears the timers for searching, and resets the timer for the next 
+     * call to search function doSearch with a new delay value */
     function scheduleNextSearch(delay) {
         if (!tmn_options.enabled) return;
         if (delay > 0) {
@@ -1046,6 +1069,7 @@ TRACKMENOT.TMNSearch = function () {
 
     }
 
+    /** initializes list of queries to send / pull from from zeitgeist, list of rss feeds, and dhs list (if enabled) */
     function initQueries() {
         typeoffeeds = ['zeitgeist', 'rss'];
 
