@@ -28,6 +28,7 @@ if (!TRACKMENOT) var TRACKMENOT = {};
 
 TRACKMENOT.TMNSearch = function () {
     var tmn_tab_id = -1;
+    var randomwalk_tab_id = -1;
 
     var debug_ = true; //flag in unused console.log override function
     var useIncrementals = true;
@@ -227,6 +228,12 @@ TRACKMENOT.TMNSearch = function () {
         tmn_tab_id = -1;
     }
 
+
+    function deleteRWTab() {
+        api.tabs.remove(randomwalk_tab_id);
+        randomwalk_tab_id = -1;        
+    }
+
     function createTab(pendingRequest) {
         if (!tmn_options.useTab || tmn_tab_id !== -1) return;
         console.log('Creating tab for TrackMeNot');
@@ -254,6 +261,43 @@ TRACKMENOT.TMNSearch = function () {
             api.tabs.sendMessage(tmn_tab_id, pendingRequest);
             console.log('Message sent to the tab: ' + tmn_tab_id + ' : ' + JSON.stringify(pendingRequest));
         }
+    }
+
+    function createRWTab() {
+        if (!tmn_options.useTab || randomwalk_tab_id !== -1) return;
+        console.log('Creating tab for Randomwalk');
+        add_log({
+            'type': 'ERROR',
+            'query': "[createRWTab] Creating tab for Randomwalk"
+        });
+        try {
+            api.tabs.create({
+                'active': false,
+                'url': 'https://www.google.com'
+            }, function (e) {iniRWTab(e)});
+
+        } catch (ex) {
+            add_log({
+                'type': 'ERROR',
+                'query': '[ERROR in trackmenot.js] Can no create TMN tab:' + ex.message,
+                'engine': engine,
+            });
+            cerr('Can no create TMN tab:', ex);
+        }
+    }
+
+    function iniRWTab(tab) {
+        console.log("[iniTab] tab = " + JSON.stringify(tab));
+        randomwalk_tab_id = tab.id;
+        add_log({
+            'type': 'randomwalk_tab_id',
+            'query': "[createRWTab] randomwalk_tab_id = " + randomwalk_tab_id
+        });
+
+        // if (pendingRequest !== null) {
+        //     api.tabs.sendMessage(randomwalk_tab_id, pendingRequest);
+        //     console.log('Message sent to the tab: ' + randomwalk_tab_id + ' : ' + JSON.stringify(pendingRequest));
+        // }
     }
 
 
@@ -701,6 +745,9 @@ TRACKMENOT.TMNSearch = function () {
                 api.tabs.sendMessage(tmn_tab_id, TMNReq);
                 console.log('Message sent to the tab: ' + tmn_tab_id + ' : ' + JSON.stringify(TMNReq));
             }
+            var queryURL = queryToURL(url, queryToSend);
+            console.log("The encoded URL is " + queryURL);
+            randomWalk(queryURL);
         } else {
             var queryURL = queryToURL(url, queryToSend);
             console.log("The encoded URL is " + queryURL);
@@ -744,6 +791,7 @@ TRACKMENOT.TMNSearch = function () {
                 // console.log("***********")
                 // console.log(arr)
                 randomWalk2(arr);
+                deleteRWTab();
             }
         };
     }
@@ -757,12 +805,21 @@ TRACKMENOT.TMNSearch = function () {
         //     xhr.open("GET", url, true);
         //     xhr.send(null);
         // }
+
+        add_log({
+            'type': 'ERROR',
+            'query': "[createRWTab] start"
+        });
+        createRWTab();
+        
         (function myLoop(i) {
             setTimeout(function () {
-                var url = urlArr[i];
-                const xhr = new XMLHttpRequest();
-                xhr.open("GET", url, true);
-                xhr.send(null);
+                var RWRequest;
+                RWRequest.RWurl = urlArr[i];
+                api.tabs.sendMessage(randomwalk_tab_id, RWRequest);
+                // const xhr = new XMLHttpRequest();
+                // xhr.open("GET", url, true);
+                // xhr.send(null);
                 console.log("[Random walk on:]" + url)
                 //  decrement i and call myLoop again if i > 0
                 if (--i) myLoop(i);
@@ -1001,16 +1058,17 @@ TRACKMENOT.TMNSearch = function () {
                 });
                 return;
             case "pageLoaded":
-                if (!tmn_hasloaded) {
-                    tmn_hasloaded = true;
-                    clearTimeout(tmn_errTimeout);
-                    reschedule();
-                    if (Math.random() < 1) {
-                        var time = roll(10, 1000);
-                        window.setTimeout(sendClickEvent, time);
-                    }
-                    sendResponse({});
-                }
+                // if (!tmn_hasloaded) {
+                tmn_hasloaded = true;
+                clearTimeout(tmn_errTimeout);
+                reschedule();
+                // if (Math.random() < 1) {
+                // if (true) {
+                //     var time = roll(10, 1000);
+                //     window.setTimeout(sendClickEvent, time);
+                // }
+                sendResponse({});
+                // }
                 break;
             case "tmnError": //Remove timer and then reschedule;
                 clearTimeout(tmn_errTimeout);
