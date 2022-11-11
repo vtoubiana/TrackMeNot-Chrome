@@ -32,6 +32,9 @@
     "name": "TrackMeNot",
     "options_page": "options.html",
     "permissions": [
+        "webRequest",
+        "webRequestBlocking",
+        "*://*.google.com/",
         "tabs",
         "https://*/*",
         "http://*/*",

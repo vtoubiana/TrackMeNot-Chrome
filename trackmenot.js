@@ -207,7 +207,7 @@ TRACKMENOT.TMNSearch = function () {
         if (useT === tmn_options.useTab) return;
         console.log("detected change in useTab value");
         //ERR: this doesn't seem to get called / the change isn't detected
-        tmn_options.useTab= useT;
+        tmn_options.useTab = useT;
 
         if (useT) {
             createTab();
@@ -234,7 +234,7 @@ TRACKMENOT.TMNSearch = function () {
             api.tabs.create({
                 'active': false,
                 'url': 'https://www.google.com'
-            }, function (e) {iniTab(e, pendingRequest)});
+            }, function (e) { iniTab(e, pendingRequest) });
 
         } catch (ex) {
             add_log({
@@ -874,9 +874,9 @@ TRACKMENOT.TMNSearch = function () {
     function saveOptions() {
         console.log("Save option within trackmenot.js: " + JSON.stringify(tmn_options));
 
-        api.storage.local.set({"options_tmn":tmn_options});
-        api.storage.local.set({"engines_tmn":tmn_engines});
-        api.storage.local.set({"gen_queries":TMNQueries});
+        api.storage.local.set({ "options_tmn": tmn_options });
+        api.storage.local.set({ "engines_tmn": tmn_engines });
+        api.storage.local.set({ "gen_queries": TMNQueries });
 
         console.log("new local options setting: ");
         console.log(getStorage("options_tmn", logGotItem));
@@ -884,7 +884,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
     function stopTMN() {
-        console.log("stopTMN(): stopping TMN");z
+        console.log("stopTMN(): stopping TMN"); z
         tmn_options.enabled = false;
         deleteTab();
         try {
@@ -951,6 +951,50 @@ TRACKMENOT.TMNSearch = function () {
             if (!tmn_options.saveLogs)
                 api.storage.local.set({ "logs_tmn": "" });
         });
+
+        api.webRequest.onBeforeRequest.addListener(
+            function (details) {
+
+                let filter = browser.webRequest.filterResponseData(details.requestId);
+                let decoder = new TextDecoder("utf-8");
+                let encoder = new TextEncoder();
+
+                filter.ondata = event => {
+                    let str = decoder.decode(event.data, { stream: true });
+                    // Just change any instance of Example in the HTTP response
+                    // to WebExtension Example.
+                    str = str.replace(/Example/g, 'WebExtension Example');
+                    let searchSuggestionsArr = []
+                    str.split('[').forEach((ele, index) => {
+                        if (!ele.split('"')[1] || index === 1 || ele.split('"')[1] === "zh" || ele.split('"')[1] === "zf") return;
+                        let autosuggestion = ele.split('"')[1];
+                        // autosuggestion = decodeURIComponent(JSON.parse(autosuggestion));
+                        var r = /\\u([\d\w]{4})/gi;
+                        autosuggestion = autosuggestion.replace(r, function (match, grp) {
+                            return String.fromCharCode(parseInt(grp, 16));
+                        });
+                        autosuggestion = autosuggestion.replace(/<b>/g, "");
+                        autosuggestion = autosuggestion.replace(/<\/b>/g, "");
+                        autosuggestion = autosuggestion.replace(/<\\\/b>/g, "");
+                        // console.log(autosuggestion);
+                        return searchSuggestionsArr.push(autosuggestion);
+                    });
+                    // console.log(searchSuggestionsArr);
+                    for (var i = 0; i < searchSuggestionsArr.length; i++) {
+                        const str = searchSuggestionsArr[i];
+                        if (str != "zh" && str != "zl" && str != "Related to recent searches")
+                            zeit_queries.unshift(str);
+                    }
+                    // console.log(zeit_queries);
+                    filter.write(encoder.encode(str));
+                    filter.disconnect();
+                }
+
+                return {};
+            },
+            { urls: ["https://www.google.com/complete/search?q&*", "https://www.google.com/complete/search?q=*"] },
+            ["blocking"]
+        );
 
     }
 
@@ -1043,10 +1087,10 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options.use_black_list = true;
         tmn_options.use_dhs_list = false;
         tmn_options.kwBlackList = ['bomb', 'porn', 'pornographie'];
-        tmn_options.saveLogs= true;
-        tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
-        tmn_options.disableLogs= false;
-        tmn_options.tmn_id = 1;     
+        tmn_options.saveLogs = true;
+        tmn_options.feedList = ['https://www.techmeme.com/index.xml', 'https://rss.slashdot.org/Slashdot/slashdot', 'https://feeds.nytimes.com/nyt/rss/HomePage'];
+        tmn_options.disableLogs = false;
+        tmn_options.tmn_id = 1;
 
     }
 
@@ -1074,7 +1118,7 @@ TRACKMENOT.TMNSearch = function () {
     function onError(error) {
         console.log(`Error: ${error}`);
     }
-    
+
     //from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
     //** wrapper for console.log to pass as a callback function when getting items from local storage */
     function logGotItem(item) {
@@ -1082,19 +1126,19 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     /** wrapper function to access local storage, using storage item key and a callback function to pass the got item(s) */
-	function getStorage(keys,callback) {
-		try {
-			let gettingItem = api.storage.local.get(keys);
-			gettingItem.then(callback, onError);
-		} catch (ex) {
-      add_log({
+    function getStorage(keys, callback) {
+        try {
+            let gettingItem = api.storage.local.get(keys);
+            gettingItem.then(callback, onError);
+        } catch (ex) {
+            add_log({
                 'type': 'ERROR',
                 'query': "[ERROR in trackmenot.js] " + ex.message,
                 'engine': engine,
-      });
-			chrome.storage.local.get(keys,callback); 
-		}   
-	}
+            });
+            chrome.storage.local.get(keys, callback);
+        }
+    }
 
     function setDefaultEngines() {
         tmn_engines = default_engines;
@@ -1135,9 +1179,9 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options = item;
         tmn_options.tmn_id = tmnID;
         console.log("Restore: " + tmn_options.enabled); //??
-        
-        if ( tmn_options.feedList !== item.feedList  ){
-            tmn_options.feedList = item.feedList ;
+
+        if (tmn_options.feedList !== item.feedList) {
+            tmn_options.feedList = item.feedList;
 
             if (tmn_options.feedList) {
                 initQueries();
@@ -1146,8 +1190,8 @@ TRACKMENOT.TMNSearch = function () {
 
         if (tmn_options.enabled !== item.enabled) {
             tmn_options.enabled = item.enabled;
-            if (tmn_options.enabled) {startTMN();}
-            else {stopTMN();} //defensively putting braces here
+            if (tmn_options.enabled) { startTMN(); }
+            else { stopTMN(); } //defensively putting braces here
         }
 
         changeTabStatus(tmn_options.useTab);
@@ -1206,18 +1250,18 @@ TRACKMENOT.TMNSearch = function () {
             }
             if ('engines_tmn' in items) {
                 console.log('detected change in search engines');
-                setEngines(items.engines_tmn.newValue);  
+                setEngines(items.engines_tmn.newValue);
             }
         },
-        
+
         /** callback function called on extension startup with contents of local storage for engines, options, logs, and gen_queries */
         _restoreTMN: function (items) {
             if (!items["engines_tmn"]) {
-               console.log("could not find saved search engine options in local storage, setting default search engines");			
-               setDefaultEngines(); 
-            } else {       
-			   restoreQueries(items["gen_queries"]);
-               setEngines(items["engines_tmn"]); 
+                console.log("could not find saved search engine options in local storage, setting default search engines");
+                setDefaultEngines();
+            } else {
+                restoreQueries(items["gen_queries"]);
+                setEngines(items["engines_tmn"]);
             }
 
             if (!items["options_tmn"]) {
