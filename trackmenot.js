@@ -1274,7 +1274,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
             try {
-                tmnLogs = items(["logs_tmn"]);
+                tmnLogs = items["logs_tmn"];
             } catch (ex) {
                 tmnLogs = [];
                 add_log({
