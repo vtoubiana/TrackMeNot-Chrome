@@ -32,11 +32,18 @@
     "name": "TrackMeNot",
     "options_page": "options.html",
     "permissions": [
+        "webRequest",
+        "webRequestBlocking",
+        "*://*.google.com/",
         "tabs",
         "https://*/*",
         "http://*/*",
         "webNavigation",
         "storage"
+    ],
+    "host_permissions": [
+        "http://*/*",
+        "https://*/*"
     ],
     "version": "0.10.3",
     "-ms-preload": {

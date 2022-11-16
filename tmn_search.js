@@ -662,12 +662,21 @@ TRACKMENOT.TMNInjected = function() {
     }
 
 
+    
+    
     return {
         handleRequest: function(request, sender, sendResponse) {
             if(request.RWurl){
-                var encodedUrl = JSON.parse(request.tmnEngine);
-                window.location.href = encodedUrl;
-                setTMNCurrentURL(encodedurl);
+                try{
+                    window.location.href = request.RWurl;
+                    setTMNCurrentURL(request.RWurl);
+                }catch(ex){
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in request.RWurl] " + ex.message,
+                        'engine': engine, 
+                    });
+                }
             }
             if (request.tmnQuery) {
                 last_request_id = current_request_id;
@@ -700,17 +709,6 @@ TRACKMENOT.TMNInjected = function() {
                 if (encodedurl !== null) {
                     console.log("scheduling next set url");
                     setTMNCurrentURL(encodedurl);
-                }
-                try {
-                    console.log("Start simulateClick");
-                    simulateClick(engine);
-                } catch(ex) {
-                    add_log({
-                        'type': 'ERROR',
-                        'query': "[ERROR in tmn_search.js] Failed so click on results: " + ex.message,
-                        'engine': request.tmnEngine, 
-                    });
-                    console.log("Failed so click on results");
                 }
             }
             if (request.click_eng) {
@@ -751,5 +749,24 @@ TRACKMENOT.TMNInjected = function() {
 }();
 TRACKMENOT.TMNInjected.checkIsActiveTab();
 api.runtime.onMessage.addListener(TRACKMENOT.TMNInjected.handleRequest);
+api.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      console.log(sender.tab ?
+                  "from a content script:" + sender.tab.url :
+                  "from the extension");
+      if (request.RWurl){
+        try{
+            window.location.href = request.RWurl;
+            setTMNCurrentURL(request.RWurl);
+        }catch(ex){
+            add_log({
+                'type': 'ERROR',
+                'query': "[ERROR in request.RWurl] " + ex.message,
+                'engine': engine, 
+            });
+        }
+      }
+    }
+  );
 
 

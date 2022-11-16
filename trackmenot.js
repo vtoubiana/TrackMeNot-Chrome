@@ -264,30 +264,33 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     function createRWTab() {
-        if (!tmn_options.useTab || randomwalk_tab_id !== -1) return;
-        console.log('Creating tab for Randomwalk');
-        add_log({
-            'type': 'ERROR',
-            'query': "[createRWTab] Creating tab for Randomwalk"
-        });
-        try {
-            api.tabs.create({
-                'active': false,
-                'url': 'https://www.google.com'
-            }, function (e) {iniRWTab(e)});
-
-        } catch (ex) {
+        if (!tmn_options.useTab || randomwalk_tab_id !== -1){
+            return;
+        }else{
+            console.log('Creating tab for Randomwalk');
             add_log({
                 'type': 'ERROR',
-                'query': '[ERROR in trackmenot.js] Can no create TMN tab:' + ex.message,
-                'engine': engine,
+                'query': "[createRWTab] Creating tab for Randomwalk"
             });
-            cerr('Can no create TMN tab:', ex);
-        }
+            try {
+                api.tabs.create({
+                    'active': false,
+                    'url': 'https://www.google.com'
+                }, function (e) {iniRWTab(e)});
+    
+            } catch (ex) {
+                add_log({
+                    'type': 'ERROR',
+                    'query': '[ERROR in trackmenot.js] Can no create TMN tab:' + ex.message,
+                    'engine': engine,
+                });
+                cerr('Can no create TMN tab:', ex);
+            }
+        }        
     }
 
     function iniRWTab(tab) {
-        console.log("[iniTab] tab = " + JSON.stringify(tab));
+        console.log("[iniRWTab] tab = " + JSON.stringify(tab));
         randomwalk_tab_id = tab.id;
         add_log({
             'type': 'randomwalk_tab_id',
@@ -717,7 +720,7 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
-    function sendQuery(queryToSend) {
+    async function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
         //Q: where is engine set, as used here?
         var url = getEngineById(engine).urlmap;
@@ -747,11 +750,11 @@ TRACKMENOT.TMNSearch = function () {
             }
             var queryURL = queryToURL(url, queryToSend);
             console.log("The encoded URL is " + queryURL);
-            randomWalk(queryURL);
+            randomWalk(queryURL, 0, roll(1, 5));
         } else {
             var queryURL = queryToURL(url, queryToSend);
             console.log("The encoded URL is " + queryURL);
-            randomWalk(queryURL);
+            randomWalk(queryURL, 0, roll(1, 5));
             var xhr = new XMLHttpRequest();
             xhr.open("GET", queryURL, true);
             xhr.onreadystatechange = function () {
@@ -777,71 +780,70 @@ TRACKMENOT.TMNSearch = function () {
             currentTMNURL = queryURL;
         }
     }
-    function randomWalk(url) {
-        //adding user interaction: users search something, and machine click one of the result. 
-        const xhr = new XMLHttpRequest();
-        console.log("This is Random Walk!!!!!!!!!!!!!!!");
-        xhr.open("GET", url, true);
-        xhr.send(null);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                var htmlText = xhr.responseText;
-                var arr = getLinksFromHtml(htmlText);
-                // debugger
-                // console.log("***********")
-                // console.log(arr)
-                randomWalk2(arr);
-                deleteRWTab();
-            }
-        };
+    
+    /** Given a int representing miliseconds, return a promise to resolve it in that amount of time*/
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    function randomWalk2(urlArr) {
-        //adding user interaction: users search something, and machine click one of the result.
-
-        // for (var i = 0; i < urlArr.length; i++) {
-        //     var url = urlArr[i];
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open("GET", url, true);
-        //     xhr.send(null);
-        // }
-
-        add_log({
-            'type': 'ERROR',
-            'query': "[createRWTab] start"
-        });
-        createRWTab();
-        
-        (function myLoop(i) {
-            setTimeout(function () {
-                var RWRequest;
-                RWRequest.RWurl = urlArr[i];
-                api.tabs.sendMessage(randomwalk_tab_id, RWRequest);
-                // const xhr = new XMLHttpRequest();
-                // xhr.open("GET", url, true);
-                // xhr.send(null);
-                console.log("[Random walk on:]" + url)
-                //  decrement i and call myLoop again if i > 0
-                if (--i) myLoop(i);
-            }, 30000)
-        })(10);
+    /** A wrapper function for the sleep function so that we don't need to use await in the randomwalk function*/
+    async function sleepWrapper(){
+        await sleep(roll(1, 20) * 100);
     }
 
-    function getLinksFromHtml(txt) {
-        var parser = new DOMParser();
-        var htmlDoc = parser.parseFromString(txt, "text/html")
-        // console.log(htmlDoc.getElementsByTagName("a"));
-        var arr = [], l = htmlDoc.links;
-        for (var i = 0; i < l.length; i++) {
-            const str = l[i].href;
-            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))
-                arr.push(l[i].href);
+    /** A wrapper function for the api.tabs.executeScript api so that we don't need to use await in the randomwalk function*/
+    async function executeScriptWrapper(rwScript){
+        await api.tabs.executeScript(randomwalk_tab_id, {code: rwScript});
+    }
+
+    /** A recursive randomwalk function that take three arguments. The url to visit, the number of hops performed, and the max amount of hops that is expected to be performed */
+    async function randomWalk(url, count, maxCount) { 
+        if(count < maxCount){
+            createRWTab();
+            getLinksFromUrl(url).then(nextUrls => {
+                if(nextUrls.length > 0){
+                    const rwScript = "window.location.href = '" + nextUrls[0] + "';";
+                    executeScriptWrapper(rwScript);
+                    var logEntry = {
+                        'type': 'click',
+                        'mode': "click",
+                        "engine": engine.id,
+                        'newUrl': nextUrls[0]+"",
+                    };
+                    add_log(logEntry);
+                    sleepWrapper();
+                    randomWalk(nextUrls[0], count+1, maxCount);
+                }                
+            });
         }
-        // Shuffle array
-        const shuffled = arr.sort(() => 0.5 - Math.random());
-        // Get sub-array of first n elements after shuffled
-        arr = shuffled.slice(0, 10);
-        return arr;
+    }
+
+    /** Given a url of string type, return a list of shuffled urls in that url html page*/
+    function getLinksFromUrl(url) {
+        return fetch(url)
+        .then(
+            response => response.text() // .json(), .blob(), etc.
+        ).then(
+            htmlText => {
+                var arr = []
+                var parser = new DOMParser();
+                var htmlDoc = parser.parseFromString(htmlText, "text/html")
+                console.log("LINKS:");
+                
+                var l = htmlDoc.links;
+                for (var i = 0; i < l.length; i++) {
+                    const str = l[i].href;
+                    if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("yahoo")  && !str.includes("bing") && !str.includes("gov")) // && !str.includes("google") && !str.includes("yahoo") && !str.includes("bing") 
+                        arr.push(l[i].href);
+                }
+                // Shuffle array
+                const shuffled = arr.sort(() => 0.5 - Math.random());
+                // Get sub-array of first n elements after shuffled
+                arr = shuffled.slice(0, 10);
+                console.log(arr);
+                return arr; 
+            } // Handle here
+        );
     }
 
 
