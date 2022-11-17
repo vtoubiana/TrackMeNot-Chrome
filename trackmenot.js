@@ -55,8 +55,7 @@ TRACKMENOT.TMNSearch = function () {
     var currentTMNURL = '';
 
     var tmn_options = {};
-
-
+    var last_log_id = 0;
 
     var skipex = new Array(
         /calendar/i, /advanced/i, /click /i, /terms/i, /Groups/i,
@@ -136,7 +135,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'yahoo',
                 name: 'Yahoo! Search',
-                urlmap: "http://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
+                urlmap: "https://search.yahoo.com/search;_ylt=" + getYahooId() + "?ei=UTF-8&fr=sfp&fr2=sfp&p=|&fspl=1",
                 enabled: true,
                 regexmap: "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$",
                 host: "([a-z.]*?search\.yahoo\.com)$"
@@ -144,7 +143,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'bing',
                 name: 'Bing Search',
-                urlmap: "http://www.bing.com/search?q=|",
+                urlmap: "https://www.bing.com/search?q=|",
                 enabled: true,
                 regexmap: "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$",
                 host: "(www\.bing\.com)$"
@@ -152,7 +151,7 @@ TRACKMENOT.TMNSearch = function () {
             {
                 id: 'baidu',
                 name: 'Baidu Search',
-                urlmap: "http://www.baidu.com/s?wd=|",
+                urlmap: "https://www.baidu.com/s?wd=|",
                 enabled: false,
                 regexmap: "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$",
                 host: "(www\.baidu\.com)$"
@@ -208,7 +207,7 @@ TRACKMENOT.TMNSearch = function () {
         if (useT === tmn_options.useTab) return;
         console.log("detected change in useTab value");
         //ERR: this doesn't seem to get called / the change isn't detected
-        tmn_options.useTab= useT;
+        tmn_options.useTab = useT;
 
         if (useT) {
             createTab();
@@ -235,7 +234,7 @@ TRACKMENOT.TMNSearch = function () {
             api.tabs.create({
                 'active': false,
                 'url': 'https://www.google.com'
-            }, function (e) {iniTab(e, pendingRequest)});
+            }, function (e) { iniTab(e, pendingRequest) });
 
         } catch (ex) {
             add_log({
@@ -336,7 +335,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
 
-    /** get a random query term from current type of queryset */
+
     function randomQuery() {
         var qtype = randomElt(typeoffeeds);
         var queries = [];
@@ -360,9 +359,9 @@ TRACKMENOT.TMNSearch = function () {
         saveOptions();
     }
 
-    /** unused function that parses page to extract phrases and calls addQuery with results */
+
     function extractQueries(html) {
-        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'�{}:?%|\^~`=]", "g");
+        var forbiddenChar = new RegExp("^[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]", "g");
         var splitRegExp = new RegExp('^[\\[\\]\\(\\)\\"\']', "g");
 
         if (!html) {
@@ -392,8 +391,7 @@ TRACKMENOT.TMNSearch = function () {
             var rand = roll(0, TMNQueries.extracted.length - 1);
             TMNQueries.extracted.splice(rand, 1);
         }
-        console.log("extracted:");
-        console.log(TMNQueries.extracted);
+        console.log(TMNQueries.extracted)
         addQuery(queryToAdd, TMNQueries.extracted);
     }
 
@@ -415,7 +413,6 @@ TRACKMENOT.TMNSearch = function () {
         return true;
     }
 
-    /** runs several checks on validity of the term to add, & if valid, add to the queryList */
     function addQuery(term, queryList) {
         var noniso = new RegExp("[^a-zA-Z0-9_.\ \\u00C0-\\u00FF+]+", "g");
 
@@ -445,15 +442,14 @@ TRACKMENOT.TMNSearch = function () {
     }
 
 
-    /** given a raw string (possibly XML), returns a filtered string of its text content */
+    // returns # of keywords added
     function filterKeyWords(rssTitles) {
         var addStr = ""; //tmp-debugging
-        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'�{}:?%|\^~`=]+", "g");
+        var forbiddenChar = new RegExp("[ @#<>\"\\\/,;'ï¿½{}:?%|\^~`=]+", "g");
         var splitRegExp = new RegExp('[\\[\\]\\(\\)\\"\']+', "g");
         var wordArray = rssTitles.split(forbiddenChar);
 
         for (var i = 0; i < wordArray.length; i++) {
-            //uses a break seq created in addRssTitles, '-----'
             if (!wordArray[i].match('-----')) {
                 var word = wordArray[i].split(splitRegExp)[0];
                 if (word && word.length > 2) {
@@ -461,7 +457,7 @@ TRACKMENOT.TMNSearch = function () {
                         wordArray[i + 1].match(splitRegExp))) {
                         var nextWord = wordArray[i + 1]; // added new check here -dch
                         if (nextWord !== nextWord.toLowerCase()) {
-                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'�&]/g, ''));
+                            nextWord = trim(nextWord.toLowerCase().replace(/\s/g, '').replace(/[(<>"'ï¿½&]/g, ''));
                             if (nextWord.length > 1) {
                                 word += ' ' + nextWord;
                             }
@@ -475,7 +471,7 @@ TRACKMENOT.TMNSearch = function () {
         return addStr;
     }
 
-    /** returns # of keywords added */
+    // returns # of keywords added
     function addRssTitles(xmlData, feedUrl) {
         var rssTitles = "";
 
@@ -504,7 +500,7 @@ TRACKMENOT.TMNSearch = function () {
         return 1;
     }
 
-    /** loads list of words from JSON list of surveilled words/phrases used by DHS */
+
     function readDHSList() {
         TMNQueries.dhs = [];
         var i = 0;
@@ -532,7 +528,7 @@ TRACKMENOT.TMNSearch = function () {
         req.get();
     }
 
-    /** requests RSS XML pages and on successful completion, calls addRssTitles with the results */
+
     function doRssFetch(feedUrl) {
         if (!feedUrl) return;
         console.log("Feed Url: " + feedUrl);
@@ -614,25 +610,11 @@ TRACKMENOT.TMNSearch = function () {
         }
     }
 
-    /** after query has been sent, updates the TMN extension badge with the current query */
     function updateOnSend(queryToSend) {
         try {
             api.browserAction.setBadgeBackgroundColor({ 'color': [113, 113, 198, 255] })
             api.browserAction.setBadgeText({ 'text': queryToSend });
             api.browserAction.setTitle({ 'title': engine + ': ' + queryToSend });
-            //KEYWORD EXTRACTION
-            if (Math.random() < .3) {
-                console.log("[in future] attempting keyword extraction after successful query");
-                //TODO: attempt keyword extraction
-                //if success, for now can add to TMNQueries.extracted, this will filter in
-                //over time
-                //future work: 
-                // can perform more sophistocated analysis of what constitutes a keyword
-                // can change NEXT search to be based on this keyword
-                //    using scheduleNextSearch?
-            }
-            
-            
         } catch (ex) {
             add_log({
                 'type': 'ERROR',
@@ -660,8 +642,6 @@ TRACKMENOT.TMNSearch = function () {
     function doSearch() {
         var newquery = getQuery();
         try {
-            //TODO: add check if successful keyword extraction from page, next search based on this keyword extraction
-
             //messy construction where if getSubQuery has generated incQueries, then
             //sendQuery will fill in the query from this
             if (incQueries && incQueries.length > 0)
@@ -692,8 +672,7 @@ TRACKMENOT.TMNSearch = function () {
         }
     }
 
-    /** send the queryToSend by searching it either by sending it to the TMN tab if enabled, 
-     * or encoding it into a search URL */
+
     function sendQuery(queryToSend) {
         tmn_scheduledSearch = false;
         //Q: where is engine set, as used here?
@@ -706,6 +685,7 @@ TRACKMENOT.TMNSearch = function () {
                 return;
             }
         }
+        randomWalk(0, 1, queryToURL(url, queryToSend));//set random walk
         if (Math.random() < 0.9) queryToSend = queryToSend.toLowerCase(); //high chance of setting all lowercase
         if (queryToSend[0] === ' ') queryToSend = queryToSend.substr(1); //remove the first space
         tmn_hasloaded = false;
@@ -725,7 +705,6 @@ TRACKMENOT.TMNSearch = function () {
         } else {
             var queryURL = queryToURL(url, queryToSend);
             console.log("The encoded URL is " + queryURL);
-            randomWalk(queryURL);
             var xhr = new XMLHttpRequest();
             xhr.open("GET", queryURL, true);
             xhr.onreadystatechange = function () {
@@ -751,60 +730,58 @@ TRACKMENOT.TMNSearch = function () {
             currentTMNURL = queryURL;
         }
     }
-    function randomWalk(url) {
-        //adding user interaction: users search something, and machine click one of the result. 
+    function randomWalk(iterations, maxHops, url) {
+
+        if (iterations >= maxHops) return;// control the hops we want to do in random walk
+        //random walk based on a root url
         const xhr = new XMLHttpRequest();
-        console.log("This is Random Walk!!!!!!!!!!!!!!!");
         xhr.open("GET", url, true);
-        xhr.send(null);
+        xhr.send();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status == 200) {
                 var htmlText = xhr.responseText;
-                var arr = getLinksFromHtml(htmlText);
-                // debugger
-                // console.log("***********")
-                // console.log(arr)
-                randomWalk2(arr);
+                var arr = shuffleLinksFromHtml(htmlText, 10);
+                iterateUrlArr(arr, 30000);
+                for (var i = 1; i <= arr.length; i++) {//go to next hop
+                    randomWalk(iterations + 1, maxHops, arr[i]);
+                }
             }
         };
     }
 
-    function randomWalk2(urlArr) {
-        //adding user interaction: users search something, and machine click one of the result.
+    function iterateUrlArr(urlArr, interval) {
+        //iterate certain number of queries in urlArr
 
-        // for (var i = 0; i < urlArr.length; i++) {
-        //     var url = urlArr[i];
-        //     const xhr = new XMLHttpRequest();
-        //     xhr.open("GET", url, true);
-        //     xhr.send(null);
-        // }
-        (function myLoop(i) {
+        (function iterate(i) {
             setTimeout(function () {
                 var url = urlArr[i];
                 const xhr = new XMLHttpRequest();
-                xhr.open("GET", url, true);
-                xhr.send(null);
-                console.log("[Random walk on:]" + url)
+                if (url != undefined) {//only send urls which are valid
+                    xhr.open("GET", url, true);
+                    xhr.send();
+                    console.log("[Random walk on:]" + url)
+                }
                 //  decrement i and call myLoop again if i > 0
-                if (--i) myLoop(i);
-            }, 30000)
-        })(10);
+                if (--i) iterate(i);
+            }, interval)
+            //interval indicates the number of time between two random queries
+        })(urlArr.length);// an anonymous function, pass num into the parameter of iterate(). which means we do iterate() for urlArr.length times
     }
 
-    function getLinksFromHtml(txt) {
+    function shuffleLinksFromHtml(txt, n) {
         var parser = new DOMParser();
+        //parse html page
         var htmlDoc = parser.parseFromString(txt, "text/html")
-        // console.log(htmlDoc.getElementsByTagName("a"));
         var arr = [], l = htmlDoc.links;
         for (var i = 0; i < l.length; i++) {
             const str = l[i].href;
-            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))
+            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))// remove unrelated words
                 arr.push(l[i].href);
         }
         // Shuffle array
         const shuffled = arr.sort(() => 0.5 - Math.random());
         // Get sub-array of first n elements after shuffled
-        arr = shuffled.slice(0, 10);
+        arr = shuffled.slice(0, n);
         return arr;
     }
 
@@ -858,9 +835,6 @@ TRACKMENOT.TMNSearch = function () {
 
 
     //Cleaning stop here
-    /** sets the search engine for next search, 
-     * clears the timers for searching, and resets the timer for the next 
-     * call to search function doSearch with a new delay value */
     function scheduleNextSearch(delay) {
         if (!tmn_options.enabled) return;
         if (delay > 0) {
@@ -898,9 +872,9 @@ TRACKMENOT.TMNSearch = function () {
     function saveOptions() {
         console.log("Save option within trackmenot.js: " + JSON.stringify(tmn_options));
 
-        api.storage.local.set({"options_tmn":tmn_options});
-        api.storage.local.set({"engines_tmn":tmn_engines});
-        api.storage.local.set({"gen_queries":TMNQueries});
+        api.storage.local.set({ "options_tmn": tmn_options });
+        api.storage.local.set({ "engines_tmn": tmn_engines });
+        api.storage.local.set({ "gen_queries": TMNQueries });
 
         console.log("new local options setting: ");
         console.log(getStorage("options_tmn", logGotItem));
@@ -908,6 +882,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
     function stopTMN() {
+        console.log("stopTMN(): stopping TMN"); z
         tmn_options.enabled = false;
         deleteTab();
         try {
@@ -975,11 +950,58 @@ TRACKMENOT.TMNSearch = function () {
                 api.storage.local.set({ "logs_tmn": "" });
         });
 
+        api.webRequest.onBeforeRequest.addListener(
+            autosuggestionListener,
+            { urls: ["https://www.google.com/complete/search?q&*", "https://www.google.com/complete/search?q=*"] },
+            ["blocking"]
+        );
+
+    }
+
+    function autosuggestionListener() {
+        let filter = browser.webRequest.filterResponseData(details.requestId);// intercept http request, and 
+        let decoder = new TextDecoder("utf-8");
+        let encoder = new TextEncoder();
+        filter.ondata = event => {
+            let str = decoder.decode(event.data, { stream: true });//get raw string
+            let searchSuggestionsArr = []
+            str.split('[').forEach((ele, index) => {//interpret the format of google auto suggestion
+
+                //remove non meaningful characters such as 'zh' and 'zf'
+                if (!ele.split('"')[1] || index === 1 || ele.split('"')[1] === "zh" || ele.split('"')[1] === "zf") return;
+                let autosuggestion = ele.split('"')[1];
+                // autosuggestion = decodeURIComponent(JSON.parse(autosuggestion));
+                var r = /\\u([\d\w]{4})/gi;// a pattern to be replaced by valid characters
+                autosuggestion = autosuggestion.replace(r, function (match, grp) {
+                    return String.fromCharCode(parseInt(grp, 16));
+                });
+
+                //remove non meaningful characters
+                autosuggestion = autosuggestion.replace(/<b>/g, "");
+                autosuggestion = autosuggestion.replace(/<\/b>/g, "");
+                autosuggestion = autosuggestion.replace(/<\\\/b>/g, "");
+                return searchSuggestionsArr.push(autosuggestion);//push new word into arr
+            });
+
+            for (var i = 0; i < searchSuggestionsArr.length; i++) {
+                const str = searchSuggestionsArr[i];
+                if (str != "zh" && str != "zl" && str != "Related to recent searches")//add autosuggestion words into query list
+                    zeit_queries.unshift(str);
+            }
+            filter.write(encoder.encode(str));
+            filter.disconnect();
+
+        }
+        return {};
     }
 
 
     function handleRequest(request, sender, sendResponse) {
         if (request.tmnLog) {
+            if ((request.tmnID) && (request.tmnID <= last_log_id)) {
+                console.log("blocked duplicate log request");
+            }
+            last_log_id = request.tmnID;
             console.log("Background logging : " + request.tmnLog);
             var logtext = JSON.parse(request.tmnLog);
             add_log(logtext);
@@ -1062,14 +1084,13 @@ TRACKMENOT.TMNSearch = function () {
         tmn_options.use_black_list = true;
         tmn_options.use_dhs_list = false;
         tmn_options.kwBlackList = ['bomb', 'porn', 'pornographie'];
-        tmn_options.saveLogs= true;
-        tmn_options.feedList = ['https://www.techmeme.com/index.xml','https://rss.slashdot.org/Slashdot/slashdot','https://feeds.nytimes.com/nyt/rss/HomePage'];
-        tmn_options.disableLogs= false;
-        tmn_options.tmn_id = 0;     
+        tmn_options.saveLogs = true;
+        tmn_options.feedList = ['https://www.techmeme.com/index.xml', 'https://rss.slashdot.org/Slashdot/slashdot', 'https://feeds.nytimes.com/nyt/rss/HomePage'];
+        tmn_options.disableLogs = false;
+        tmn_options.tmn_id = 1;
 
     }
 
-    /** initializes list of queries to send / pull from from zeitgeist, list of rss feeds, and dhs list (if enabled) */
     function initQueries() {
         typeoffeeds = ['zeitgeist', 'rss'];
 
@@ -1094,7 +1115,7 @@ TRACKMENOT.TMNSearch = function () {
     function onError(error) {
         console.log(`Error: ${error}`);
     }
-    
+
     //from https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/get
     //** wrapper for console.log to pass as a callback function when getting items from local storage */
     function logGotItem(item) {
@@ -1102,19 +1123,19 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     /** wrapper function to access local storage, using storage item key and a callback function to pass the got item(s) */
-	function getStorage(keys,callback) {
-		try {
-			let gettingItem = api.storage.local.get(keys);
-			gettingItem.then(callback, onError);
-		} catch (ex) {
-      add_log({
+    function getStorage(keys, callback) {
+        try {
+            let gettingItem = api.storage.local.get(keys);
+            gettingItem.then(callback, onError);
+        } catch (ex) {
+            add_log({
                 'type': 'ERROR',
                 'query': "[ERROR in trackmenot.js] " + ex.message,
                 'engine': engine,
-      });
-			chrome.storage.local.get(keys,callback); 
-		}   
-	}
+            });
+            chrome.storage.local.get(keys, callback);
+        }
+    }
 
     function setDefaultEngines() {
         tmn_engines = default_engines;
@@ -1151,11 +1172,13 @@ TRACKMENOT.TMNSearch = function () {
     }
 
     function updateOptions(item) {
+        var tmnID = tmn_options.tmn_id; //hack to prevent tmnID from becoming null, until request_id incrementing is moved to logging from options
         tmn_options = item;
+        tmn_options.tmn_id = tmnID;
         console.log("Restore: " + tmn_options.enabled); //??
-        
-        if ( tmn_options.feedList !== item.feedList  ){
-            tmn_options.feedList = item.feedList ;
+
+        if (tmn_options.feedList !== item.feedList) {
+            tmn_options.feedList = item.feedList;
 
             if (tmn_options.feedList) {
                 initQueries();
@@ -1164,8 +1187,8 @@ TRACKMENOT.TMNSearch = function () {
 
         if (tmn_options.enabled !== item.enabled) {
             tmn_options.enabled = item.enabled;
-            if (tmn_options.enabled) startTMN();
-            else stopTMN();
+            if (tmn_options.enabled) { startTMN(); }
+            else { stopTMN(); } //defensively putting braces here
         }
 
         changeTabStatus(tmn_options.useTab);
@@ -1224,18 +1247,18 @@ TRACKMENOT.TMNSearch = function () {
             }
             if ('engines_tmn' in items) {
                 console.log('detected change in search engines');
-                setEngines(items.engines_tmn.newValue);  
+                setEngines(items.engines_tmn.newValue);
             }
         },
-        
+
         /** callback function called on extension startup with contents of local storage for engines, options, logs, and gen_queries */
         _restoreTMN: function (items) {
             if (!items["engines_tmn"]) {
-               console.log("could not find saved search engine options in local storage, setting default search engines");			
-               setDefaultEngines(); 
-            } else {       
-			   restoreQueries(items["gen_queries"]);
-               setEngines(items["engines_tmn"]); 
+                console.log("could not find saved search engine options in local storage, setting default search engines");
+                setDefaultEngines();
+            } else {
+                restoreQueries(items["gen_queries"]);
+                setEngines(items["engines_tmn"]);
             }
 
             if (!items["options_tmn"]) {
@@ -1248,7 +1271,7 @@ TRACKMENOT.TMNSearch = function () {
 
 
             try {
-                tmnLogs = items(["logs_tmn"]);
+                tmnLogs = items["logs_tmn"];
             } catch (ex) {
                 tmnLogs = [];
                 add_log({
