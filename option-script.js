@@ -193,7 +193,7 @@ function TMNShowLog(items) {
         if (logs[i].type === 'info') htmlStr += 'style="color:Green">';
         htmlStr += logs[i].engine ? '<td><b>' + logs[i].engine + '</b></td>' : '<td></td>';
         htmlStr += logs[i].mode ? '<td>' + logs[i].mode + '</td>' : '<td></td>';
-        htmlStr += logs[i].newUrl ? '<td>' + logs[i].newUrl.substring(0, 50) + '</td>' : '<td></td>';
+        htmlStr += logs[i].newUrl ? '<td>' + logs[i].newUrl.substring(0, 100) + '</td>' : '<td></td>';
         htmlStr += logs[i].query ? '<td>' + logs[i].query + '</td>' : '<td></td>';
         htmlStr += logs[i].date ? '<td>' + logs[i].date + '</td>' : '<td></td>';
 
