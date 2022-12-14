@@ -28,9 +28,10 @@ if (!TRACKMENOT)
 TRACKMENOT.TMNInjected = function() {
     var debug_script = true;
 
-    var tmn_id = 0;
+    var current_request_id = 1;
     var tmnCurrentURL = '';
     var engine = '';
+    var last_engine = '';
     //    var allEvents = ['blur','change','click','dblclick','DOMMouseScroll','focus','keydown','keypress','keyup','load','mousedown','mousemove','mouseout','mouseover','mouseup','select'];
 
 
@@ -38,15 +39,16 @@ TRACKMENOT.TMNInjected = function() {
 
 
     var testAd_google = function(anchorClass, anchorlink) {
-        return (anchorlink
-                && (anchorClass === 'l' || anchorClass === 'l vst')
-                && anchorlink.indexOf('http') === 0
-                && anchorlink.indexOf('https') !== 0);
+        // return (anchorlink
+        //         && (anchorClass === 'l' || anchorClass === 'l vst')
+        //         && anchorlink.indexOf('http') === 0
+        //         && anchorlink.indexOf('https') !== 0);
+        return !anchorlink.startsWith("http") || anchorlink.includes("//ad.") || anchorlink.includes("google") || anchorlink.includes("yahoo") || anchorlink.includes("search") || anchorlink.includes("..");
     }
 
     var testAd_yahoo = function(anchorClass, anchorlink) {
-		return false;
-        //return (anchorClass === '\"yschttl spt\"' || anchorClass === 'yschttl spt');
+		// return false;
+        return !anchorlink.startsWith("http") || anchorlink.includes("//ad.") || anchorlink.includes("google") || anchorlink.includes("yahoo") || anchorlink.includes("search") || anchorlink.includes("..");
     }
 
     var testAd_aol = function(anchorClass, anchorlink) {
@@ -55,6 +57,7 @@ TRACKMENOT.TMNInjected = function() {
     }
 
     var testAd_bing = function(anchorClass, anchorlink) {
+        return !anchorlink.startsWith("http") || anchorlink === "#" || anchorlink.includes("//ad.") || anchorlink.includes("google") || anchorlink.includes("bing") || anchorlink.includes("search") || anchorlink.includes("..");;
         return (anchorlink
                 && anchorlink.indexOf('http') === 0
                 && anchorlink.indexOf('https') !== 0
@@ -75,6 +78,11 @@ TRACKMENOT.TMNInjected = function() {
         var button = getElementsByAttrValue(document, 'button', 'name', 'btnG');
         if (!button)
             button = getElementsByAttrValue(document, 'button', 'name', 'btnK');
+        if (!button)
+            button = getElementsByAttrValue(document, 'input', 'name', 'btnK');
+        if (!button)
+            button = getElementsByAttrValue(document, 'button', 'jsname', 'Tg7LZd');
+            
         return button;
     }
     var getButton_yahoo = function(  ) {
@@ -109,7 +117,7 @@ TRACKMENOT.TMNInjected = function() {
     };
 
 
-    var testad = function(engine_id,anchorClass, anchorlink) {
+    var isAd = function(engine_id,anchorClass, anchorlink) {
         switch (engine_id) {
             case 'google':
                 return testAd_google(anchorClass, anchorlink);
@@ -154,6 +162,7 @@ TRACKMENOT.TMNInjected = function() {
     };
 
     var get_button = function(engine_id) {
+        console.log("searching for button with engine.id = " + engine_id);
         switch (engine_id) {
             case 'google':
                 return getButton_google();
@@ -175,6 +184,12 @@ TRACKMENOT.TMNInjected = function() {
         }
     };
 
+    var engine2homepage = {
+        'google': 'https://www.google.com/', 
+        'yahoo': 'https://www.yahoo.com/', 
+        'bing': 'https://www.bing.com/', 
+        'baidu': 'https://www.baidu.com/'
+    }
 
     var engines_regex = [
         {
@@ -194,20 +209,12 @@ TRACKMENOT.TMNInjected = function() {
             'name': 'Bing Search',
             "host": "(www\.bing\.com)$",
             'regexmap': "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$"
-
         },
         {
             'id': 'baidu',
             'name': 'Baidu Search',
             "host": "(www\.baidu\.com)$",
             'regexmap': "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$"
-
-        },
-        {
-            'id': 'aol',
-            'name': 'Aol Search',
-            "host": "([a-z0-9.]*?search\.aol\.com)$",
-            'regexmap': "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$"
         }
     ];
     function roll(min, max) {
@@ -217,10 +224,10 @@ TRACKMENOT.TMNInjected = function() {
     function cout(msg) {
         console.log(msg);
     }
-    function debug(msg) {
-        if (debug_script)
-            console.log("Debug: " + msg);
-    }
+    // function debug(msg) {
+    //     if (debug_script)
+    //         console.log("debug: " + msg);
+    // }
 
 
     function stripTags(htmlStr) {
@@ -275,8 +282,30 @@ TRACKMENOT.TMNInjected = function() {
         searchBox.dispatchEvent(evtUp);
     }
 
-    function simulateClick(engine) {
+    function getLinksFromHtml(txt) {
+        var parser = new DOMParser();
+        var htmlDoc = parser.parseFromString(txt, "text/html")
+        // console.log(htmlDoc.getElementsByTagName("a"));
+        var arr = [], l = htmlDoc.links;
+        for (var i = 0; i < l.length; i++) {
+            const str = l[i].href;
+            if (str.substring(0, 5) === 'https' && !str.includes("google") && !str.includes("gov"))
+                arr.push(l[i].href);
+        }
+        // Shuffle array
+        const shuffled = arr.sort(() => 0.5 - Math.random());
+        // Get sub-array of first n elements after shuffled
+        arr = shuffled.slice(0, 10);
+        return arr;
+    }
 
+    function walk2(link) {
+        window.location.href = link;
+        setTMNCurrentURL(link);
+    }
+
+    async function simulateClick(engine) {
+        const currentUrl_ = window.location.href;
         var clickIndex = roll(0, 9);
         if (!document || document === "undefined")
             return;
@@ -285,41 +314,72 @@ TRACKMENOT.TMNInjected = function() {
 
         var anchorLink, anchorClass;
         var j = 0;
-        for (var i = 0; i < pageLinks.length; i++) {
+        // Shuffle array
+        pageLinks = [].slice.call(pageLinks).sort(() => 0.5 - Math.random());
+        // Get sub-array of first n elements after shuffled
+        // pageLinks = pageLinks.slice(0, 10);
+
+        for (var i = 0; i <  pageLinks.length; i++) {
             if (pageLinks[i].hasAttribute("orighref"))
                 anchorLink = pageLinks[i].getAttribute("orighref");
             else
                 anchorLink = pageLinks[i].getAttribute("href");
             anchorClass = pageLinks[i].getAttribute("class");
-            var link = stripTags(pageLinks[i].innerHTML);
-            if (testad(engine.id, anchorClass, anchorLink)) {
-                j++;
-                if (j === clickIndex) {
-                    var logEntry = JSON.stringify({
+            // var link = stripTags(pageLinks[i].innerHTML);
+            // add_log({
+            //     'type': 'ERROR',
+            //     'query': "[simulateClick() in tmn_search.js] link: " + pageLinks[i],
+            //     'engine': engine, 
+            // });
+
+            
+            if (anchorLink && !isAd(engine.id, anchorClass, anchorLink)) {
+                try {
+                    // clickElt(pageLinks[i]);
+                    // pageLinks[i].click();
+                    // window.location.href = anchorLink;
+                    // setTMNCurrentURL(anchorLink);
+                    await new Promise(resolve => setTimeout(walk2, 1000, anchorLink));
+                    // setTimeout(walk2, 0, anchorLink);
+                    console.log("link clicked: " + anchorLink);
+                    var logEntry = {
                         'type': 'click',
+                        'mode': "click",
                         "engine": engine.id,
-                        'query': link,
-                        'id': tmn_id
+                        'newUrl': anchorLink+"",
+                        'id': current_request_id
+                    };
+                    j++;
+                    add_log(logEntry);
+                } catch (e) {
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in tmn_search.js] error opening click-through request for: " + e.message,
+                        'engine': engine, 
                     });
-                    log(logEntry);
-                    try {
-                        clickElt(pageLinks[i]);
-                        cout("link clicked");
-                    } catch (e) {
-                        cout("error opening click-through request for " + e);
-                    }
-                    return;
+                    console.log("error opening click-through request for " + e);
                 }
             }
+            if(j >= 3){
+                // window.location.href = currentUrl_;
+                // setTMNCurrentURL(currentUrl_);
+                // setTimeout(walk2, 1000, currentUrl_);
+                return;
+            }
         }
+        // window.location.href = currentUrl_;
+        // setTMNCurrentURL(currentUrl_);
+        // setTimeout(walk2, 1000, currentUrl_);
+        return;
     }
 
 
 
-    function clickButton() {
-        var button = get_button(engine.id, document);
-        clickElt(button);
-        debug("send page loaded");
+    function clickButton(searchButton) {
+        // var button = get_button(engine.id, document);
+        searchButton.click();
+        // clickElt(button);
+        console.log("send page loaded");
         sendPageLoaded();
     }
 
@@ -355,7 +415,7 @@ TRACKMENOT.TMNInjected = function() {
         return null;
     }
 
-
+    /** function that identifies differences between the current searchValue entered in the search bar and the nextQuery (queued to send) */
     function getCommonWords(searchValue, nextQuery) {
         var searched = searchValue.split(' ');
         var tosearch = nextQuery.split(' ');
@@ -376,7 +436,7 @@ TRACKMENOT.TMNInjected = function() {
 
 
 
-    function typeQuery(queryToSend, currIndex, searchBox, chara, isIncr) {
+    function typeQuery(queryToSend, currIndex, searchBox, chara, isIncr, searchButton) {
         var nextPress;
         tmnCurrentQuery = queryToSend;
 
@@ -394,18 +454,18 @@ TRACKMENOT.TMNInjected = function() {
             } else {*/
                 var newWord = queryToSend.substring(currIndex).split(" ")[0];
                 if (newWord.length > 1 && (currIndex === 0 || queryToSend[currIndex - 1] === " ")) {
-                    cout("Checking if " + newWord + " appears in " + searchBox.value);
+                    console.log("Checking if " + newWord + " appears in " + searchBox.value);
                     if (!(searchBox.value.indexOf(newWord + " ") < 0)) {
-                        cout("It\s in");
+                        console.log("It\s in");
                         if (searchBox.value.indexOf(newWord, currIndex) >= 0) {
-                            cout("We\re movine of " + newWord.length + 1);
+                            console.log("We\re movine of " + newWord.length + 1);
                             searchBox.selectionEnd += newWord.length + 1;
                             searchBox.selectionStart = searchBox.selectionEnd;
                         }
                         currIndex += newWord.length;
                         updateStatus(searchBox.value);
                         nextPress = roll(50, 250);
-                        window.setTimeout(typeQuery, nextPress, queryToSend, currIndex, searchBox, chara.slice(), false);
+                        window.setTimeout(typeQuery, nextPress, queryToSend, currIndex, searchBox, chara.slice(), false, searchButton);
                         return;
                     }
                 }
@@ -430,16 +490,17 @@ TRACKMENOT.TMNInjected = function() {
                 updateStatus(searchBox.value);
                 currIndex++;
                 nextPress = roll(50, 250);
-                window.setTimeout(typeQuery, nextPress, queryToSend, currIndex, searchBox, chara.slice(), false);
+                window.setTimeout(typeQuery, nextPress, queryToSend, currIndex, searchBox, chara.slice(), false, searchButton);
            // }
         } else {
             updateStatus(searchBox.value);
             nextPress = roll(10, 30);
-            if (Math.random() < 0.5)
-                window.setTimeout(clickButton, nextPress);
-            else
-                window.setTimeout(pressEnter, nextPress, searchBox);
-            // window.setTimeout( sendCurrentURL, nextpress+1)
+            window.setTimeout(clickButton, nextPress, searchButton);
+            // if (Math.random() < 0.5)
+            //     window.setTimeout(clickButton, nextPress);
+            // else
+            //     window.setTimeout(pressEnter, nextPress, searchBox);
+            //window.setTimeout( sendCurrentURL, nextpress+1) //no function called sendCurrentURL
         }
     }
 
@@ -457,6 +518,7 @@ TRACKMENOT.TMNInjected = function() {
 
 
     function sendQuery(engine, queryToSend, tmn_mode, url) {
+        console.log("[tmn_search.js] sendQuery");
         var host;
         try {
             host = window.location.host;
@@ -465,21 +527,25 @@ TRACKMENOT.TMNInjected = function() {
         }
         var reg = new RegExp(engine.host, 'g');
         var encodedUrl = queryToURL(url, queryToSend);
-        var logEntry = JSON.stringify({
-            'type': 'query',
-            "engine": engine.id,
-            'mode': tmn_mode,
-            'query': queryToSend,
-            'id': tmn_id
-        });
-        log(logEntry);
         updateStatus(queryToSend);
         if (host === "" || !host.match(reg)) {
             try {
                 window.location.href = encodedUrl;
+                add_log({
+                    'type': 'query',
+                    "engine": engine.id,
+                    'mode': tmn_mode,
+                    'query': queryToSend,
+                    'id': current_request_id
+                });
                 return encodedUrl;
             } catch (ex) {
-                cout("Caught exception: " + ex);
+                console.log("Caught exception: " + ex);
+                add_log({
+                    'type': 'ERROR',
+                    'query': "[ERROR in tmn_search.js] " + ex.message,
+                    'engine': engine, 
+                });
                 api.runtime.sendMessage({
                     "url": encodedUrl
                 });
@@ -489,22 +555,42 @@ TRACKMENOT.TMNInjected = function() {
         } else {
             var searchBox = get_box(engine.id);
             var searchButton = get_button(engine.id);
+            console.log("searchBox: " + JSON.stringify(searchBox));
+            console.log("get_button: " + JSON.stringify(get_button));
             if (searchBox && searchButton && engine !== 'aol') {
-                debug("The searchbox has been found " + searchBox);
                 searchBox.value = getCommonWords(searchBox.value, queryToSend).join(' ');
                 searchBox.selectionStart = 0;
                 searchBox.selectionEnd = 0;
                 var chara = new Array();
-                typeQuery(queryToSend, 0, searchBox, chara, false);
+                typeQuery(queryToSend, 0, searchBox, chara, false, searchButton);
+                add_log({
+                    'type': 'query',
+                    "engine": engine.id,
+                    'mode': tmn_mode,
+                    'query': queryToSend,
+                    'id': current_request_id
+                });
                 return null;
             } else {
                 tmnCurrentURL = encodedUrl;
-                debug("The searchbox can not be found ");
+                console.log("The searchbox can not be found ");
                 try {
                     window.location.href = encodedUrl;
+                    add_log({
+                        'type': 'query',
+                        "engine": engine.id,
+                        'mode': tmn_mode,
+                        'query': queryToSend,
+                        'id': current_request_id
+                    });
                     return encodedUrl;
                 } catch (ex) {
-                    cout("Caught exception: " + ex);
+                    console.log("Caught exception: " + ex);
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in tmn_search.js] Caught exception: " + ex.message,
+                        'engine': engine, 
+                    });
                     api.runtime.sendMessage({
                         "url": encodedUrl
                     });
@@ -521,13 +607,13 @@ TRACKMENOT.TMNInjected = function() {
     function isSafeHost(host) {
         for (var i = 0; i < engines_regex.length; i++) {
             var eng = engines_regex[i];
-            var regex = eng.hostMap;
-            cout("regex :" + regex);
+            var regex = eng.host;
+            // console.log("regex :" + regex);
             if (host.match(regex)) {
                 return true;
             }
         }
-        return false;
+        return true; // used to be false
     }
 
 
@@ -544,8 +630,8 @@ TRACKMENOT.TMNInjected = function() {
     }
 
 
-    function log(msg) {
-        api.runtime.sendMessage({tmnLog: msg});
+    function add_log(msg) {
+        api.runtime.sendMessage({tmnLog: JSON.stringify(msg)});
     }
 
     function updateStatus(msg) {
@@ -567,7 +653,7 @@ TRACKMENOT.TMNInjected = function() {
 
     function setTMNCurrentURL(url) {
         tmnCurrentURL = url;
-        debug("Current TMN loc: " + tmnCurrentURL);
+        console.log("Current TMN loc: " + tmnCurrentURL);
         var message = {
             "url": tmnCurrentURL
         };
@@ -576,22 +662,52 @@ TRACKMENOT.TMNInjected = function() {
     }
 
 
+    
+    
     return {
         handleRequest: function(request, sender, sendResponse) {
+            if(request.RWurl){
+                try{
+                    window.location.href = request.RWurl;
+                    setTMNCurrentURL(request.RWurl);
+                }catch(ex){
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in request.RWurl] " + ex.message,
+                        'engine': engine, 
+                    });
+                }
+            }
             if (request.tmnQuery) {
-                /*if (tmn_id >= request.tmnID) {
-                    debug("Duplicate queries ignored");
-                    return;
-                }*/
-                debug("Received: " + request.tmnQuery + " on engine: " + request.tmnEngine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
-                var tmn_query = request.tmnQuery;
+                last_request_id = current_request_id;
+                // if (last_request_id >= request.tmnID) {
+                //     console.log("Duplicate queries ignored");
+                //     return;
+                // }
                 var engine = JSON.parse(request.tmnEngine);
+                console.log("Received: " + request.tmnQuery + " on engine: " + engine.id + " mode: " + request.tmnMode + " tmn id " + request.tmnID);
+                
+                // if(last_engine != engine){
+                //     console.log("Changed search engine, visiting " + engine2homepage[engine.id]);
+                //     try {
+                //         window.location.href = engine2homepage[engine.id];
+                //         setTMNCurrentURL(engine2homepage[engine.id]);
+                //         console.log("Visited" + engine2homepage[engine.id]);
+                //     } catch (ex) {
+                //         console.log("Failed visiting " + engine2homepage[engine.id] + " first. Error: " + ex)
+                //     }                    
+                // }
+
+                var tmn_query = request.tmnQuery;
                 var tmn_mode = request.tmnMode;
-                tmn_id = request.tmnID;
+                current_request_id = request.tmnID;
                 var tmn_URLmap = request.tmnUrlMap;
                 var encodedurl = sendQuery(engine, tmn_query, tmn_mode, tmn_URLmap);
+
+                // last_engine = engine;
+                
                 if (encodedurl !== null) {
-                    debug("scheduling next set url");
+                    console.log("scheduling next set url");
                     setTMNCurrentURL(encodedurl);
                 }
             }
@@ -599,7 +715,12 @@ TRACKMENOT.TMNInjected = function() {
                 try {
                     simulateClick(request.click_eng);
                 } catch(ex) {
-                    cout ("Failed so click on results")
+                    add_log({
+                        'type': 'ERROR',
+                        'query': "[ERROR in tmn_search.js] Failed so click on results: " + ex.message,
+                        'engine': engine, 
+                    });
+                    console.log("Failed so click on results");
                 }
             }
             return; // snub them.
@@ -609,7 +730,7 @@ TRACKMENOT.TMNInjected = function() {
                 tmn: "isActiveTab"
             }, function(response) {
                 if ( response && response.isActive) {
-                    cout('Message sent from active tab');
+                    console.log('Message sent from active tab');
                     TRACKMENOT.TMNInjected.hasLoaded();
                 }
             });
@@ -617,7 +738,7 @@ TRACKMENOT.TMNInjected = function() {
         hasLoaded: function() {
             var host = window.location.host;
             if (!isSafeHost(host)) {
-                cout("Host " + host + " is unsafe");
+                console.log("Host " + host + " is unsafe");
                 window.stop();
                 //history.go(-1);
             }
@@ -628,5 +749,24 @@ TRACKMENOT.TMNInjected = function() {
 }();
 TRACKMENOT.TMNInjected.checkIsActiveTab();
 api.runtime.onMessage.addListener(TRACKMENOT.TMNInjected.handleRequest);
+api.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      console.log(sender.tab ?
+                  "from a content script:" + sender.tab.url :
+                  "from the extension");
+      if (request.RWurl){
+        try{
+            window.location.href = request.RWurl;
+            setTMNCurrentURL(request.RWurl);
+        }catch(ex){
+            add_log({
+                'type': 'ERROR',
+                'query': "[ERROR in request.RWurl] " + ex.message,
+                'engine': engine, 
+            });
+        }
+      }
+    }
+  );
 
 
