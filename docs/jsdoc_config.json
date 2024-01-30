@@ -1,0 +1,31 @@
+{
+    "source": {
+        "include": [ "trackmenot.js", "tmn_search.js", "menu-script.js", "option-script.js" ]
+    },
+    "opts": {
+      "template": "docdash",
+      "destination": "docs/"
+    },
+    "templates": {
+        "cleverLinks": false,
+        "monospaceLinks": false
+    },
+    "docdash": {
+        "sort": false,
+        "search": true,
+        "meta": {                    
+            "title": "TrackMeNot JS Docs", 
+            "description": "",        
+            "keyword": ""              
+        },
+        "menu": {                      
+            "Project Website": {        
+                "href":"https://trackmenot.io",
+                "target":"_blank",
+                "class":"menu-item",
+                "id":"TMN Official Site"
+            }
+        },
+        "scripts": ["./../.link-fixer.js"]
+    }
+}

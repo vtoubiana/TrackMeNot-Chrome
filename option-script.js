@@ -14,8 +14,15 @@ var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
 var options = {};
 
 
+/** Functions within option-script.js 
+ * @namespace Options 
+ * */
 
-
+/** Binds all of the options buttons to call their handler functions on click,
+ * or simply handles the logic for the button if the code is concise.
+ * @function loadHandlers
+ * @memberof Options
+ *  */
 function loadHandlers() {
     $("#apply-options").unbind().click(function() {
          saveOptions();
@@ -93,6 +100,12 @@ function loadHandlers() {
     });
 }
 
+    /** Gets a search engine's index in tmn_engines by its id
+     * @function getEngIndexById
+     * @memberof Options
+     * @param {string} id - the id of the engine
+     * @returns {number} the index of the corresponding engine within tmn_engines, or -1 if not found
+     *  */
     function getEngIndexById(id) {
         for (var i = 0; i < tmn_engines.list.length; i++) {
             if (tmn_engines.list[i].id === id) return i;
@@ -100,6 +113,10 @@ function loadHandlers() {
         return -1;
     }
 
+    /** updates the list of search engines by checking which engine checkboxes are enabled 
+     * @function updateEngineList 
+     * @memberof Options
+     * */
      function updateEngineList() {
         tmn_engines.list.forEach(function (x) {return x.enabled = false;});
         $("#search-engine-list :checked").each(function() {
@@ -109,14 +126,23 @@ function loadHandlers() {
         api.storage.local.set({'engines_tmn':tmn_engines});
         TMNShowEngines(tmn_engines);
     }
-    
+    /** Gets a search engine's index in tmn_engines by its id
+     * @function clearOptions
+     * @memberof Options
+     * @param {string} id - the id of the engine
+     * @returns {number} the index of the corresponding engine within tmn_engines, or -1 if not found
+     *  */
     function clearOptions() {
 		var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
 		api.storage.local.clear();
 		tmn._resetSettings();
 		getStorage(["engines_tmn","options_tmn"],TMNLoadOptionWindow );
 	}
-
+    /** Add a new search engine to TMN
+     * @function addEngine
+     * @memberof Options
+     * @param {object} param - the object containing the search engine info
+     *  */
       function addEngine(param) {
 
         var new_engine = {};
@@ -133,15 +159,23 @@ function loadHandlers() {
         updateEngineList();
     }
 
-
-
+    /** Remove an engine from TMN's engines
+     * @function delEngine
+     * @memberof Options
+     * @param {string} del_engine - the id of the search engine to delete
+     *  */
     function delEngine(del_engine) {
         tmn_engines.list = tmn_engines.list.filter(function(x) {return x.id !== del_engine;});
 		TMNShowEngines(tmn_engines) 
         updateEngineList();
     }
     
-    
+/** Sets the values of the options page with values from the input item object.
+ * Called when the options page is loaded, with values from local storage.
+ * @function TMNSetOptionsMenu
+ * @memberof Options
+ * @param {object} item - option values to set the options page with
+ *  */  
 function TMNSetOptionsMenu(item) {
     options =item; 
     var feedList = options.feedList.join('|');
@@ -163,16 +197,22 @@ function TMNSetOptionsMenu(item) {
     setFrequencyMenu(options.timeout);
 }
 
-
-
-
+/** Sets the search frequency option. Isolated because it has a different
+ * option structure?
+ * @function setFrequencyMenu
+ * @memberof Options
+ * @param {number} timeout - the timeout between searches
+ *  */
 function setFrequencyMenu(timeout) {
     $('#trackmenot-opt-timeout option[value=' + timeout + ']').prop('selected', true);
 }
 
-
-
-
+/** Displays TMN running logs. Bound to call onclick on the show logs button,
+ *  with logs from local storage in loadHandlers().
+ * @function TMNShowLog
+ * @memberof Options
+ * @param {object} items - the container object for the retrieved TMN logs
+ *  */
 function TMNShowLog(items) {
     var logs = items.logs_tmn;
     var htmlStr = '<table cellspacing=3>';
@@ -204,7 +244,11 @@ function TMNShowLog(items) {
 	//window.setTimeout(TMNShowLog, 1000,items);
 }
 
-
+/** updates the HTML display for the currently listed engines in the options page (can be enabled or disabled)
+ * @function TMNShowEngines
+ * @memberof Options
+ * @param {object} item - object containing the list of tmn_engines
+ * */
 function TMNShowEngines(item) {
     tmn_engines= item;
     var htmlStr = "<table>";
@@ -221,6 +265,11 @@ function TMNShowEngines(item) {
     loadHandlers();
 }
 
+/** Displays the past TMN queries sent. 
+ * @function TMNShowQueries
+ * @memberof Options
+ * @param {object} tmn_queries - an object containing the arrays of TMN queries, organized by type of query (e.g. dhs, rss)
+ * */
 function TMNShowQueries(tmn_queries) {
 
 var htmlStr =  '<a href="#dhs">DHS</a> | <a href="#rss"> RSS </a> | <a href="#popular"> Popular </a>|<a href="#extracted"> Extracted</a>';
@@ -285,7 +334,10 @@ var htmlStr =  '<a href="#dhs">DHS</a> | <a href="#rss"> RSS </a> | <a href="#po
 	
 }
 
-
+/** sets local storage options_tmn, also used by trackmenot.js 
+ * @function saveOptions 
+ * @memberof Options
+ * */
 function saveOptions() {
     var options = {};
     options.enabled = $("#trackmenot-opt-enabled").is(':checked');
@@ -304,6 +356,14 @@ function saveOptions() {
     api.storage.local.set({"options_tmn":options});
 }
 
+/** Routes TMNShowQueries TMN requests to call TMNShowQueries with the request.param.
+ * Sends an empty object response to every request.
+ * @function handleRequest 
+ * @memberof Options
+ * @param {object} request - the TMN request object
+ * @param [sender]
+ * @param {function} sendResponse - callback function
+ * */
 function handleRequest(request, sender, sendResponse) {
     if (!request.options) return;
     switch (request.options) {
@@ -314,14 +374,22 @@ function handleRequest(request, sender, sendResponse) {
         default:
             sendResponse({}); // snub them.
     }
-
-
 }
 
+/** Callback function that logs the word "Error" to the console.
+ * @function onError
+ * @memberof Options
+ * */
 function onError(){
 	console.log("Error");
 }
 
+/** Get items by input keys from local storage, and pass them to the input callback function.
+ * @function getStorage
+ * @memberof Options
+ * @param {array} keys - a list of local storage item keys
+ * @param {function} callback - callback function to pass gotten items
+ * */ 
 function getStorage(keys,callback) {
     try {
         let gettingItem = api.storage.local.get(keys);
@@ -331,7 +399,11 @@ function getStorage(keys,callback) {
     }   
 }
 
-
+/** Load the options page with retrieved values for TMN options and search engines.
+ * @function TMNLoadOptionWindow
+ * @memberof Options
+ * @param {object} items - the retrieved object with options and engines
+ * */
 function TMNLoadOptionWindow(items) {
     if (items["options_tmn"]) {
         TMNSetOptionsMenu(items["options_tmn"]);
@@ -345,8 +417,6 @@ function TMNLoadOptionWindow(items) {
 window.addEventListener('load', function() {
     getStorage(["engines_tmn","options_tmn"],TMNLoadOptionWindow );
 });
-
-
 
 
 api.runtime.onMessage.addListener(handleRequest);

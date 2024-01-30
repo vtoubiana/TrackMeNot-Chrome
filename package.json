@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "generate-docs": "jsdoc --configure ./docs/jsdoc_config.json -R ./docs/docs_homepage.md -t ./node_modules/docdash --verbose"
+  },
+  "dependencies": {
+    "docdash": "^2.0.2",
+    "jsdoc": "^4.0.2"
+  }
+}
