@@ -1,4 +1,56 @@
-/*******************************************************************************    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>tmn_search.js - TrackMeNot JS Docs</title>
+    
+    
+    
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://trackmenot.io" target="_blank" class="menu-item" id="TMN Official Site" >Project Website</a></h2><h3>Modules</h3><ul><li><a href="TRACKMENOT.module_TMNSearch.html">TMNSearch</a><ul class='methods'><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~trim">trim</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~cerr">cerr</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~roll">roll</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~randomElt">randomElt</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getElementsByAttrValue">getElementsByAttrValue</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getEngineById">getEngineById</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getYahooId">getYahooId</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~chooseElt">chooseElt</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getTMNTab">getTMNTab</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~deleteTab">deleteTab</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~createTab">createTab</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~iniTab">iniTab</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~monitorBurst">monitorBurst</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~checkForSearchUrl">checkForSearchUrl</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~isBursting">isBursting</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~randomQuery">randomQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~validateFeeds">validateFeeds</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~extractQueries">extractQueries</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~isBlackList">isBlackList</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~queryOk">queryOk</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~addQuery">addQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~filterKeyWords">filterKeyWords</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~addRssTitles">addRssTitles</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~readDHSList">readDHSList</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~doRssFetch">doRssFetch</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getSubQuery">getSubQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getQuery">getQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~updateOnErr">updateOnErr</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~updateOnSend">updateOnSend</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~createLog">createLog</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~doSearch">doSearch</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~sendQuery">sendQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~queryToURL">queryToURL</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~rescheduleOnError">rescheduleOnError</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~reschedule">reschedule</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~scheduleNextSearch">scheduleNextSearch</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~enterBurst">enterBurst</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~saveOptions">saveOptions</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~stopTMN">stopTMN</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~formatNum">formatNum</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~add_log">add_log</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~sendClickEvent">sendClickEvent</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~startTMN">startTMN</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~handleRequest">handleRequest</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~setDefaultOptions">setDefaultOptions</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~initQueries">initQueries</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~onError">onError</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~getStorage">getStorage</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~setDefaultEngines">setDefaultEngines</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~restoreOptions">restoreOptions</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~updateOptions">updateOptions</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~setEngines">setEngines</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~restoreQueries">restoreQueries</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_logStorageChange">_logStorageChange</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_restoreTMN">_restoreTMN</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_getEngine">_getEngine</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_getQueries">_getQueries</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_getStorage">_getStorage</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_resetSettings">_resetSettings</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNSearch.html#~_preserveTMNTab">_preserveTMNTab</a></li></ul></li><li><a href="TRACKMENOT.module_TMNInjected.html">TMNInjected</a><ul class='methods'><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testAd_google">testAd_google</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testAd_yahoo">testAd_yahoo</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testAd_aol">testAd_aol</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testAd_bing">testAd_bing</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testAd_baidu">testAd_baidu</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getButton_google">getButton_google</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getButton_yahoo">getButton_yahoo</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getButton_bing">getButton_bing</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getButton_aol">getButton_aol</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getButton_baidu">getButton_baidu</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~SearchBox_google">SearchBox_google</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~SearchBox_yahoo">SearchBox_yahoo</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~SearchBox_bing">SearchBox_bing</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~SearchBox_aol">SearchBox_aol</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~SearchBox_baidu">SearchBox_baidu</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~testad">testad</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~get_box">get_box</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~get_button">get_button</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~roll">roll</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~cout">cout</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~stripTags">stripTags</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~pressEnter">pressEnter</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~downKey">downKey</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~pressKey">pressKey</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~inputChar">inputChar</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~releaseKey">releaseKey</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~simulateClick">simulateClick</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~clickButton">clickButton</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~clickElt">clickElt</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getElementsByAttrValue">getElementsByAttrValue</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getCommonWords">getCommonWords</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getTimingArray">getTimingArray</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~typeQuery">typeQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~queryToURL">queryToURL</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~sendQuery">sendQuery</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~isSafeHost">isSafeHost</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~sendPageLoaded">sendPageLoaded</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~add_log">add_log</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~updateStatus">updateStatus</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~getTMNCurrentURL">getTMNCurrentURL</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~setTMNCurrentURL">setTMNCurrentURL</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~handleRequest">handleRequest</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~checkIsActiveTab">checkIsActiveTab</a></li><li data-type='method'><a href="TRACKMENOT.module_TMNInjected.html#~hasLoaded">hasLoaded</a></li></ul></li><li><a href="TRACKMENOT.module_Menus.html">Menus</a><ul class='methods'><li data-type='method'><a href="TRACKMENOT.module_Menus.html#~showHelp">showHelp</a></li><li data-type='method'><a href="TRACKMENOT.module_Menus.html#~toggleOnOff">toggleOnOff</a></li><li data-type='method'><a href="TRACKMENOT.module_Menus.html#~toggleTabFrame">toggleTabFrame</a></li><li data-type='method'><a href="TRACKMENOT.module_Menus.html#~onLoadMenu">onLoadMenu</a></li></ul></li></ul><h3>Namespaces</h3><ul><li><a href="Options.html">Options</a><ul class='methods'><li data-type='method'><a href="Options.html#.loadHandlers">loadHandlers</a></li><li data-type='method'><a href="Options.html#.getEngIndexById">getEngIndexById</a></li><li data-type='method'><a href="Options.html#.updateEngineList">updateEngineList</a></li><li data-type='method'><a href="Options.html#.clearOptions">clearOptions</a></li><li data-type='method'><a href="Options.html#.addEngine">addEngine</a></li><li data-type='method'><a href="Options.html#.delEngine">delEngine</a></li><li data-type='method'><a href="Options.html#.TMNSetOptionsMenu">TMNSetOptionsMenu</a></li><li data-type='method'><a href="Options.html#.setFrequencyMenu">setFrequencyMenu</a></li><li data-type='method'><a href="Options.html#.TMNShowLog">TMNShowLog</a></li><li data-type='method'><a href="Options.html#.TMNShowEngines">TMNShowEngines</a></li><li data-type='method'><a href="Options.html#.TMNShowQueries">TMNShowQueries</a></li><li data-type='method'><a href="Options.html#.saveOptions">saveOptions</a></li><li data-type='method'><a href="Options.html#.handleRequest">handleRequest</a></li><li data-type='method'><a href="Options.html#.onError">onError</a></li><li data-type='method'><a href="Options.html#.getStorage">getStorage</a></li><li data-type='method'><a href="Options.html#.TMNLoadOptionWindow">TMNLoadOptionWindow</a></li></ul></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">tmn_search.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/*******************************************************************************    
  This file is part of TrackMeNot (Chrome version).
  
  TrackMeNot is free software: you can redistribute it and/or modify
@@ -11,7 +63,7 @@
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+ along with Foobar.  If not, see &lt;http://www.gnu.org/licenses/>.
  ********************************************************************************/
 
 var api;
@@ -50,9 +102,9 @@ TRACKMENOT.TMNInjected = function() {
      * */
     var testAd_google = function(anchorClass, anchorlink) {
         return (anchorlink
-                && (anchorClass === 'l' || anchorClass === 'l vst')
-                && anchorlink.indexOf('http') === 0
-                && anchorlink.indexOf('https') !== 0);
+                &amp;&amp; (anchorClass === 'l' || anchorClass === 'l vst')
+                &amp;&amp; anchorlink.indexOf('http') === 0
+                &amp;&amp; anchorlink.indexOf('https') !== 0);
     }
 
     /** Function to check anchorClass and anchorlink for characteristic
@@ -78,7 +130,7 @@ TRACKMENOT.TMNInjected = function() {
      * */
     var testAd_aol = function(anchorClass, anchorlink) {
         return (anchorClass === '\"find\"' || anchorClass === 'find'
-                && anchorlink.indexOf('https') !== 0 && anchorlink.indexOf('aol') < 0);
+                &amp;&amp; anchorlink.indexOf('https') !== 0 &amp;&amp; anchorlink.indexOf('aol') &lt; 0);
     }
 
     /** Checks anchorClass and anchorlink for characteristic
@@ -91,13 +143,13 @@ TRACKMENOT.TMNInjected = function() {
      * */
     var testAd_bing = function(anchorClass, anchorlink) {
         return (anchorlink
-                && anchorlink.indexOf('http') === 0
-                && anchorlink.indexOf('https') !== 0
-                && anchorlink.indexOf('msn') < 0
-                && anchorlink.indexOf('live') < 0
-                && anchorlink.indexOf('bing') < 0
-                && anchorlink.indexOf('microsoft') < 0
-                && anchorlink.indexOf('WindowsLiveTranslator') < 0)
+                &amp;&amp; anchorlink.indexOf('http') === 0
+                &amp;&amp; anchorlink.indexOf('https') !== 0
+                &amp;&amp; anchorlink.indexOf('msn') &lt; 0
+                &amp;&amp; anchorlink.indexOf('live') &lt; 0
+                &amp;&amp; anchorlink.indexOf('bing') &lt; 0
+                &amp;&amp; anchorlink.indexOf('microsoft') &lt; 0
+                &amp;&amp; anchorlink.indexOf('WindowsLiveTranslator') &lt; 0)
     }
 
     /** Check anchorClass and anchorlink for characteristic
@@ -110,8 +162,8 @@ TRACKMENOT.TMNInjected = function() {
      * */
     var testAd_baidu = function(anchorClass, anchorlink) {
         return (anchorlink
-                && anchorlink.indexOf('baidu') < 0
-                && anchorlink.indexOf('https') !== 0);
+                &amp;&amp; anchorlink.indexOf('baidu') &lt; 0
+                &amp;&amp; anchorlink.indexOf('https') !== 0);
     }
 
     /** Tries to find the Google button four different attrValues, returns the button or undefined.
@@ -300,33 +352,33 @@ TRACKMENOT.TMNInjected = function() {
             'id': 'google',
             'name': 'Google Searchs',
             "host": "(www\.google\.(co\.|com\.)?[a-z]{2,3})$",
-            'regexmap': "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&\?]{1}q=)([^&]*)(.*)$"
+            'regexmap': "^(https?:\/\/[a-z]+\.google\.(co\\.|com\\.)?[a-z]{2,3}\/(search){1}[\?]?.*?[&amp;\?]{1}q=)([^&amp;]*)(.*)$"
         },
         {
             'id': 'yahoo',
             'name': 'Yahoo! Search',
             "host": "([a-z.]*?search\.yahoo\.com)$",
-            'regexmap': "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&]*)(.*)$"
+            'regexmap': "^(https?:\/\/[a-z.]*?search\.yahoo\.com\/search.*?p=)([^&amp;]*)(.*)$"
         },
         {
             'id': 'bing',
             'name': 'Bing Search',
             "host": "(www\.bing\.com)$",
-            'regexmap': "^(https?:\/\/www\.bing\.com\/search\?[^&]*q=)([^&]*)(.*)$"
+            'regexmap': "^(https?:\/\/www\.bing\.com\/search\?[^&amp;]*q=)([^&amp;]*)(.*)$"
 
         },
         {
             'id': 'baidu',
             'name': 'Baidu Search',
             "host": "(www\.baidu\.com)$",
-            'regexmap': "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&]*)(.*)$"
+            'regexmap': "^(https?:\/\/www\.baidu\.com\/s\?.*?wd=)([^&amp;]*)(.*)$"
 
         },
         {
             'id': 'aol',
             'name': 'Aol Search',
             "host": "([a-z0-9.]*?search\.aol\.com)$",
-            'regexmap': "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&]*)(.*)$"
+            'regexmap': "^(https?:\/\/[a-z0-9.]*?search\.aol\.com\/aol\/search\?.*?q=)([^&amp;]*)(.*)$"
         }
     ];
     /** Utility function that generates a random number between min and max, inclusive.
@@ -358,7 +410,7 @@ TRACKMENOT.TMNInjected = function() {
      * @returns {string} the cleaned string
      * */
     function stripTags(htmlStr) {
-        return htmlStr.replace(/(<([^>]+)>)/ig, "");
+        return htmlStr.replace(/(&lt;([^>]+)>)/ig, "");
     }
 
     /** Function to focus the browser on an input element and press enter, 
@@ -451,7 +503,7 @@ TRACKMENOT.TMNInjected = function() {
 
         var anchorLink, anchorClass;
         var j = 0;
-        for (var i = 0; i < pageLinks.length; i++) {
+        for (var i = 0; i &lt; pageLinks.length; i++) {
             if (pageLinks[i].hasAttribute("orighref"))
                 anchorLink = pageLinks[i].getAttribute("orighref");
             else
@@ -532,8 +584,8 @@ TRACKMENOT.TMNInjected = function() {
      * */
     function getElementsByAttrValue(dom, nodeType, attrName, nodeValue) {
         var outlines = dom.getElementsByTagName(nodeType);
-        for (var i = 0; i < outlines.length; i++) {
-            if (outlines[i].hasAttribute(attrName) && outlines[i].getAttribute(attrName) === nodeValue)
+        for (var i = 0; i &lt; outlines.length; i++) {
+            if (outlines[i].hasAttribute(attrName) &amp;&amp; outlines[i].getAttribute(attrName) === nodeValue)
                 return outlines[i];
         }
         return null;
@@ -565,7 +617,7 @@ TRACKMENOT.TMNInjected = function() {
      * */
     function getTimingArray() {
         var timers = [];
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i &lt; 5; i++) {
             timers.push(Math.floor(Math.random() * 30));
         }
         return timers.sort();
@@ -587,9 +639,9 @@ TRACKMENOT.TMNInjected = function() {
 
         clickElt(searchBox);
         searchBox.focus();
-        if (currIndex < queryToSend.length) {
+        if (currIndex &lt; queryToSend.length) {
             // var suggestElt = getQuerySuggestion(doc);	
-            /*if (false && Math.random() < 0.02 && suggestElt.length > 0) {
+            /*if (false &amp;&amp; Math.random() &lt; 0.02 &amp;&amp; suggestElt.length > 0) {
                 var index_ = roll(0, suggestElt.length - 1);
                 selectElt(suggestElt[index_], searchBox);
                 clickElt(suggestElt[index_]);
@@ -598,9 +650,9 @@ TRACKMENOT.TMNInjected = function() {
                 return;
             } else {*/
                 var newWord = queryToSend.substring(currIndex).split(" ")[0];
-                if (newWord.length > 1 && (currIndex === 0 || queryToSend[currIndex - 1] === " ")) {
+                if (newWord.length > 1 &amp;&amp; (currIndex === 0 || queryToSend[currIndex - 1] === " ")) {
                     cout("Checking if " + newWord + " appears in " + searchBox.value);
-                    if (!(searchBox.value.indexOf(newWord + " ") < 0)) {
+                    if (!(searchBox.value.indexOf(newWord + " ") &lt; 0)) {
                         cout("It\s in");
                         if (searchBox.value.indexOf(newWord, currIndex) >= 0) {
                             cout("We\re movine of " + newWord.length + 1);
@@ -640,7 +692,7 @@ TRACKMENOT.TMNInjected = function() {
         } else {
             updateStatus(searchBox.value);
             nextPress = roll(10, 30);
-            if (Math.random() < 0.5)
+            if (Math.random() &lt; 0.5)
                 window.setTimeout(clickButton, nextPress);
             else
                 window.setTimeout(pressEnter, nextPress, searchBox);
@@ -656,7 +708,7 @@ TRACKMENOT.TMNInjected = function() {
      * @returns {string} the encoded URL
      * */
     function queryToURL(url, query) {
-        if (Math.random() < 0.9)
+        if (Math.random() &lt; 0.9)
             query = query.toLowerCase();
         var urlQuery = url.replace('|', query);
         urlQuery = urlQuery.replace(/ /g, '+');
@@ -708,7 +760,7 @@ TRACKMENOT.TMNInjected = function() {
         } else {
             var searchBox = get_box(engine.id);
             var searchButton = get_button(engine.id);
-            if (searchBox && searchButton && engine !== 'aol') {
+            if (searchBox &amp;&amp; searchButton &amp;&amp; engine !== 'aol') {
                 debug("The searchbox has been found " + searchBox);
                 searchBox.value = getCommonWords(searchBox.value, queryToSend).join(' ');
                 searchBox.selectionStart = 0;
@@ -742,7 +794,7 @@ TRACKMENOT.TMNInjected = function() {
      * @param {string} host
      * @return {Boolean}  */
     function isSafeHost(host) {
-        for (var i = 0; i < engines_regex.length; i++) {
+        for (var i = 0; i &lt; engines_regex.length; i++) {
             var eng = engines_regex[i];
             var regex = eng.hostMap;
             cout("regex :" + regex);
@@ -864,7 +916,7 @@ TRACKMENOT.TMNInjected = function() {
             api.runtime.sendMessage({
                 tmn: "isActiveTab"
             }, function(response) {
-                if ( response && response.isActive) {
+                if ( response &amp;&amp; response.isActive) {
                     cout('Message sent from active tab');
                     TRACKMENOT.TMNInjected.hasLoaded();
                 }
@@ -890,3 +942,32 @@ TRACKMENOT.TMNInjected.checkIsActiveTab();
 api.runtime.onMessage.addListener(TRACKMENOT.TMNInjected.handleRequest);
 
 
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Jan 29 2024 23:53:47 GMT-0500 (Eastern Standard Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+
+    <script src="./../.link-fixer.js"></script>
+    
+</body>
+</html>
